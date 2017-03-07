@@ -1,0 +1,2 @@
+The folder 'rasters' 'Contains modified Copernicus Sentinel data [2016]'
+For information about the legal backgrounds please refer to: https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice
