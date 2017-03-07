@@ -25,18 +25,18 @@
 ;    x
 ;
 ; :Keywords:
-;     NAME:
-;     CHANGE_GROUP:
+;     NAME: in, optional, bool
+;     CHANGE_GROUP: in, optional, bool 
 ;
 ; :Returns:
 ;     if KEYWORD_SET(NAME): String with datatype, ELSE: conversion of input to datatype
 ;     if KEWWORD_SET(CHANGE_GROUP): Smallest datatype accross groups, ELSE: Smallest datatype within groups.
 ;
 ; :Examples:
-;     >> typename(DETER_MINSIZE(42ULL))
-;     >> typename(DETER_MINSIZE(-42LL))
-;     >> typename(DETER_MINSIZE(42LL))
-;     >> typename(DETER_MINSIZE(42LL,/CHANGE_GROUP))
+;     IDL> typename(DETER_MINSIZE(42ULL))
+;     IDL> typename(DETER_MINSIZE(-42LL))
+;     IDL> typename(DETER_MINSIZE(42LL))
+;     IDL> typename(DETER_MINSIZE(42LL,/CHANGE_GROUP))
 ;
 ; :Description:
 ;     Determine the smallest numeric datatype able to store a given value.
