@@ -37,6 +37,26 @@ FUNCTION ROIseries_ut :: TEST_DETER_MINSIZE
     RETURN,1
 END
 
+FUNCTION ROIseries_ut :: TEST_CHECK_RASTERSERIES
+    COMPILE_OPT idl2, HIDDEN
+    ; Set Up
+    dir = GET_RELDIR("CHECK_RASTERSERIES",2,["data","sentinel_2a","rasters"])
+    string_array = FILE_SEARCH(dir,"*studyarea.tif")
+    list_of_strings = string_array.toList()
+    list_of_numeric_arrays = list_of_strings.map(LAMBDA(i:READ_TIFF(i)))
+    numeric_array = list_of_numeric_arrays[0]
+    single_string = string_array[0]
+    ;------------------------------------------------------------------------------------
+    ASSERT,CHECK_RASTERSERIES(string_array,BANDS=bands,EXTENT=extent) EQ 'StringArray','StringArray not detected' 
+    ASSERT, bands EQ 4, 'Number of bands not detected'
+    ASSERT, ARRAY_EQUAL(extent,[70,41]), 'Extent not detected successfully'
+    ASSERT,CHECK_RASTERSERIES(list_of_strings) EQ 'ListOfStrings', 'ListOfStrings'
+    ASSERT,CHECK_RASTERSERIES(list_of_numeric_arrays) EQ 'ListOfNumericArrays','ListOfNumericArrays not detected' 
+    ASSERT,CHECK_RASTERSERIES(numeric_array) EQ 'NumericArray','NumericArray not detected' 
+    ASSERT,CHECK_RASTERSERIES(single_string) EQ 'SingleString','SingleString not detected'
+    RETURN,1
+END
+
 PRO ROIseries_ut__define
   COMPILE_OPT idl2, HIDDEN
   define = { ROIseries_ut, INHERITS MGutTestCase }

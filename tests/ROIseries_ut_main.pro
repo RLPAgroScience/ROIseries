@@ -18,3 +18,4 @@
 ;  along with ROIseries.  If not, see <http://www.gnu.org/licenses/>.
 ;-
 mgunit,'ROIseries_ut.TEST_DETER_MINSIZE'
+mgunit,'ROIseries_ut.TEST_CHECK_RASTERSERIES'
