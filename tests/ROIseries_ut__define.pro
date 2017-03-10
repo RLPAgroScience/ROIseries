@@ -57,6 +57,48 @@ FUNCTION ROIseries_ut :: TEST_CHECK_RASTERSERIES
     RETURN,1
 END
 
+FUNCTION ROIseries_ut :: TEST_SPECTRAL_INDEXER
+    COMPILE_OPT idl2, HIDDEN
+    
+    ;setup
+    im = FINDGEN(4,10,10)
+    im[0,*,*] = FINDGEN(10,10)
+    im[1,*,*] = TRANSPOSE(REFORM(im[0,*,*]))
+    im[2,*,*] = ROTATE(REFORM(im[1,*,*]),1)
+    im[3,*,*] = TRANSPOSE(REFORM(im[2,*,*]))
+    
+    ndvi = REFORM((im[3,*,*]-im[0,*,*])/(im[3,*,*]+im[0,*,*]))
+    path = FILEPATH("spectral_indexer_test.tif",/TMP)
+    WRITE_TIFF,path,im,/FLOAT
+    string_array = [path,path,path]
+    list_of_strings = string_array.toList()
+    single_string = string_array[0]
+    list_of_numeric_arrays = list_of_strings.map(LAMBDA(i:READ_TIFF(i)))
+    numeric_array = list_of_numeric_arrays[0]    
+    formula_ndvi = "(R[3]-R[0])/(R[3]+R[0])"
+    
+    ; tests
+    T1 = (SPECTRAL_INDEXER(string_array,formula_ndvi));[1]
+    ASSERT,(TOTAL(SQRT((T1[1]-NDVI)^2))) LT 0.001,"String_array: ndvi index = 1 deviates too strongly"
+    ASSERT,ARRAY_EQUAL(T1[0],T1[1]) AND ARRAY_EQUAL(T1[1],T1[2]),"String_array: NDVIs do not match"
+    
+    T2 = (SPECTRAL_INDEXER(list_of_strings,"R[2]"))
+    ASSERT,ARRAY_EQUAL(T2[0],im[2,*,*]),"list_of_strings: channel index=2, index=3 do not match"
+    ASSERT,ARRAY_EQUAL(T2[0],T2[1]) AND ARRAY_EQUAL(T2[1],T2[2]),"list_of_strings: NDVIs do not match"
+    
+    T3 = SPECTRAL_INDEXER(single_string,formula_ndvi)
+    ASSERT,(TOTAL(SQRT((T3-NDVI)^2))) LT 0.001,"single_string: ndvi deviates too strongly"
+    
+    T4 = (SPECTRAL_INDEXER(list_of_numeric_arrays,formula_ndvi))
+    ASSERT,(TOTAL(SQRT((T4[-1]-NDVI)^2))) LT 0.001,"list_of_numeric_arrays: ndvi deviates too strongly"
+    ASSERT,ARRAY_EQUAL(T4[0],T4[1]) AND ARRAY_EQUAL(T4[1],T4[2]),"list_of_numeric_arrays: NDVIs do not match"
+    
+    T5 = (SPECTRAL_INDEXER(numeric_array,"R[-1]"))
+    ASSERT,ARRAY_EQUAL(T5,im[3,*,*]),"numeric_array: index -1 does not work"
+    
+    RETURN,1
+END
+
 PRO ROIseries_ut__define
   COMPILE_OPT idl2, HIDDEN
   define = { ROIseries_ut, INHERITS MGutTestCase }
