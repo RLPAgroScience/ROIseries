@@ -7,3 +7,4 @@
 *.shp filter=lfs diff=lfs merge=lfs -text
 *.shp.qtr filter=lfs diff=lfs merge=lfs -text
 *.shx filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
