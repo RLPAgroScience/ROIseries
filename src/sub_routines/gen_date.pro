@@ -29,10 +29,13 @@
 ;        [First_Character,Length] (cp. documentation of STRMID)
 ;    posDay: in, required, numeric array
 ;        [First_Character,Length] (cp. documentation of STRMID)
+; 
+; :Returns:
+;    numeric array containing the julian dates 
 ;
 ; :Examples:
 ;     IDL> dates_strings=["abc_20140403_x.tif","abc_20160425_x.tif","abc_20160623_x.tif","abc_20170307_x.tif"]
-;     IDL> juldate_numeric = GEN_DATE(dates,[4,4],[8,2],[10,2])
+;     IDL> juldate_numeric = GEN_DATE(dates_strings,[4,4],[8,2],[10,2])
 ;     IDL> print,juldate_numeric
 ;     IDL> CALDAT,juldate_numeric,Months,Days,Years
 ;     IDL> print,Months,Days,Years
