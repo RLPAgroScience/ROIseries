@@ -26,7 +26,7 @@
 ;         path to the csv file containing the ground truth
 ;     types: in,required,strarr
 ;         array of column names to extract from csv
-;     ID_Field: in,required,string
+;     ID_Colname: in,required,string
 ;         name of column that stores IDs for each row
 ;     posYear: in, required, numeric array
 ;         [First_Character,Length] (cp. documentation of STRMID)
@@ -45,8 +45,8 @@
 ;
 ; :Examples:
 ;     IDL> csv = GET_RELDIR("GroundTruth_from_csv",2,["data","sentinel_2a","table"])+"observations.csv"
-;     IDL> types =  ["before_harvest","after_harvest","before_ploughing","after_ploughing"]
-;     IDL> aggregate = HASH(LIST("harvest","ploughin"),LIST(["before_harvest","after_harvest"],["before_ploughing","after_ploughing"]))
+;     IDL> types =  ["before_harvest","after_harvest","before_ploughing","after_ploughing","second_veg_removal_before","second_veg_removal_after"]
+;     IDL> aggregate = HASH(LIST("harvest","ploughin","second_veg_removal"),LIST(["before_harvest","after_harvest"],["before_ploughing","after_ploughing"],["second_veg_removal_before","second_veg_removal_after"]))
 ;     IDL> groundtruth = GROUNDTRUTH_FROM_CSV(csv,types,"ID",[0,4],[4,2],[6,2])
 ;     IDL> groundtruth_aggregated = GROUNDTRUTH_FROM_CSV(csv,types,"ID",[0,4],[4,2],[6,2],AGGREGATE=aggregate)
 ;     IDL> groundtruth
@@ -60,14 +60,26 @@
 ; :Author:
 ;     Niklas Keck ("niklas_keck'use at instead'gmx.de").replace("'use at instead'","@")
 ;-
-FUNCTION GROUNDTRUTH_FROM_CSV,csv,types,ID_Field,posYear,posMonth,posDay,AGGREGATE=aggregate
+FUNCTION GROUNDTRUTH_FROM_CSV,csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate
     COMPILE_OPT idl2, HIDDEN 
+    
+    ; Check inputs
+    testv=[N_ELEMENTS(csv) NE 0,N_ELEMENTS(types) NE 0,N_ELEMENTS(ID_Colname) NE 0,N_ELEMENTS(posYear)NE 0,N_ELEMENTS(posMonth)NE 0,N_ELEMENTS(posDay) NE 0]
+    IF TOTAL(testv) NE N_ELEMENTS(testv) THEN BEGIN
+      TESTVPos=WHERE(~TESTV)
+      IF TESTVPos->HasValue(0) THEN MESSAGE,"Please provide CSV"
+      IF TESTVPos->HasValue(1) THEN MESSAGE,"Plase provide types"
+      IF TESTVPos->HasValue(2) THEN MESSAGE,"please provide ID_Field"
+      IF TESTVPos->HasValue(3) THEN MESSAGE,"please provide posYear"
+      IF TESTVPos->HasValue(4) THEN MESSAGE,"please provide posMonth"
+      IF TESTVPos->HasValue(5) THEN MESSAGE,"pleas provide posDay"
+    ENDIF
     
     ; Read CSV and make 
     table=READ_CSV(csv,HEADER=header); COUNT=count
     
     ; Get the data in an more convenient format
-    ids = table.(WHERE(header EQ ID_FIELD))
+    ids = table.(WHERE(header EQ ID_Colname))
     
     ; make a nested ORDEREDHASH:
     ; ORDEREDHASH(ID:ORDEREDHASH(events:[datesarray]))
@@ -81,7 +93,7 @@ FUNCTION GROUNDTRUTH_FROM_CSV,csv,types,ID_Field,posYear,posMonth,posDay,AGGREGA
                 t = GEN_DATE(t_string,posYear,posMonth,posDay) &$
                 temp_result[typ] = t &$    
              ENDIF ELSE BEGIN &$
-                temp_result[typ] = 'NA'  &$
+                CONTINUE  &$ ; Skip NA
              ENDELSE &$
         ENDFOREACH &$
         result[ids[i]]=temp_result &$
