@@ -119,7 +119,7 @@ FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMU
     Index=ARRAY_INDICES_ROI_RS(RASTERSERIES[0],SHAPEFILE,ID_COL_NAME,UPSAMPLING=upsampling,PUMPUP=Pump)
     
     ; Reduce the retrieved indices to project the image-object into an array with the minimum size to hold the original object.
-    RedIndex=IndexReduce_RS(Index["Index"],PUMPUP=Pump)
+    RedIndex=ARRAY_INDICES_ROI_MINIMIZE_RS(Index["Index"],PUMPUP=Pump)
     
     ; Resample the array if neccessary to a finer resolution asp specified in upsampling parameter
     IF N_ELEMENTS(UPSAMPLING) NE 0 THEN BEGIN
