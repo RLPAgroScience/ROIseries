@@ -116,7 +116,7 @@ FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMU
     IF N_ELEMENTS(SIZE(ImageArray)) NE 5 THEN Pump=(SIZE(ImageArray))[3] ELSE Pump=1
     
     ; For each vector-object: Get the indices into the original rasterarrays considering:
-    Index=IndexFromShpRaster_RS(RASTERSERIES[0],SHAPEFILE,ID_COL_NAME,UPSAMPLING=upsampling,PUMPUP=Pump)
+    Index=ARRAY_INDICES_ROI_RS(RASTERSERIES[0],SHAPEFILE,ID_COL_NAME,UPSAMPLING=upsampling,PUMPUP=Pump)
     
     ; Reduce the retrieved indices to project the image-object into an array with the minimum size to hold the original object.
     RedIndex=IndexReduce_RS(Index["Index"],PUMPUP=Pump)
