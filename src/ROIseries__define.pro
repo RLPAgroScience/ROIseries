@@ -1,0 +1,340 @@
+;+
+;  ROIseries__define: Root class of the ROIseries library. For inheritance only, do not instantiate directly.
+;  Copyright (C) 2017 Niklas Keck
+;
+;  This file is part of ROIseries.
+;
+;  ROIseries is free software: you can redistribute it and/or modify
+;  it under the terms of the GNU Affero General Public License as published by
+;  the Free Software Foundation, either version 3 of the License, or
+;  (at your option) any later version.
+;
+;  ROIseries is distributed in the hope that it will be useful,
+;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;  GNU Affero General Public License for more details.
+;
+;  You should have received a copy of the GNU Affero General Public License
+;  along with ROIseries.  If not, see <http://www.gnu.org/licenses/>.
+;-
+
+; Initialize with defaults
+FUNCTION RoiSeries :: init
+    self.data=ptr_new(/allocate)
+    self.parents=ptr_new(/allocate)
+    self.legacy=ptr_new(/allocate)
+    self.DB=""
+    self.id=""
+    self.time=ptr_new(/allocate)
+    self.class=ptr_new(/allocate)
+    self.no_save = 0
+    self.unit=ptr_new(/allocate)
+    RETURN,1
+END
+
+; Save object to db
+PRO RoiSeries :: savetodb,step
+    IF self.no_save THEN BEGIN
+        path=!Values.F_NAN
+    ENDIF ELSE BEGIN
+        path=self.db+step+".sav"
+        IF *(self.legacy) EQ !NULL THEN BEGIN
+            *(self.legacy)=ORDEREDHASH(step,path)
+        ENDIF ELSE BEGIN
+            *(self.legacy)=*(self.legacy)+ORDEREDHASH(step,path)
+        ENDELSE
+        (SCOPE_VARFETCH(step,/ENTER))=self.copy(/KEEP_ID)
+        SAVE,FILENAME=path,(SCOPE_VARFETCH(step,/ENTER))
+        temp=(size(temporary((SCOPE_VARFETCH(step,/ENTER)))))
+    ENDELSE
+END
+
+; Restore object to specified "step" from DB folder
+FUNCTION RoiSeries :: reset,step
+    ; Test if save was enabled.
+    ; Not testing on self.no_save makes it possible to save only certain steps:
+    ; IF ((*(self.legacy))[step]) EQ !Values.F_NAN THEN RETURN,"NO_SAVE was set"
+    RESTORE,((*(self.legacy))[step])
+    RETURN,(scope_varfetch(step,/ENTER))
+END
+
+;-------------------------------------------------------------------------------------
+; Overloading some standard methods
+; [] Overloading
+FUNCTION RoiSeries::_overloadBracketsRightSide,isRange, sub
+    IF isRange THEN print,"Ranges are not yet supported, use a list of keys instead"
+    ; make a copy of the object and remove values that are not in the list sub1
+    x=copyheap(self)
+    x.data=x.data[sub]
+    IF typename(x.class) EQ "HASH" THEN x.class=x.class[sub]
+    RETURN,x
+END
+
+; Get attributes out of Object: Thanks a lot for the inspiration!! (https://www.idlcoyote.com/tips/getproperty.html)
+PRO RoiSeries::GetProperty,_ref_extra=extra
+
+    Call_Procedure , Obj_Class(self)+'__define', struct
+    index=(WHERE(Tag_Names(struct) EQ ((STRUPCASE(extra))[0]),count))[0]
+  
+    IF count NE 1 THEN BEGIN
+        print,"Keyword not found"
+    ENDIF ELSE BEGIN
+        IF TYPENAME(self.(index)) EQ 'POINTER' THEN BEGIN
+            (scope_varfetch(extra, /ref_extra)) = *(self.(index))           ; Do not give access to pointers inside the object!
+        ENDIF ELSE BEGIN
+            (scope_varfetch(extra, /ref_extra)) = self.(index)
+        ENDELSE
+    ENDELSE
+END
+
+PRO RoiSeries::SetProperty,_extra=extra
+    Call_Procedure , Obj_Class(self)+'__define', struct
+    name=((STRUPCASE(tag_names(extra)))[0])
+    index=(WHERE(Tag_Names(struct) EQ name,count))[0]
+  
+    IF count NE 1 THEN BEGIN
+        PRINT,"Keyword not found"
+    ENDIF ELSE BEGIN
+        IF TYPENAME(self.(index)) EQ 'POINTER' THEN BEGIN ; do not give access to pointer inside object
+            *(self.(index))=extra.(0)
+        ENDIF ELSE BEGIN
+            self.(index)=extra.(0)
+        ENDELSE
+    ENDELSE
+    self->savetodb,"set_"+name
+END
+
+; Overloading Arithmetics
+; +
+FUNCTION RoiSeries::_overloadPlus,left,right
+    ; Check preconditions and return result
+    print,"ATTENTION BETA: this method needs some testing"
+    IF ISA(right,'ROISERIES') THEN BEGIN
+        test=ArithmPreCon_RS(left,right)
+        IF TYPENAME(test) EQ 'STRING' THEN Return,test
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
+    ENDIF ELSE BEGIN
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),right))
+    ENDELSE
+    ; make new object that has all checked properties, new data, "id:legacy" from parents and everything else set to Null
+    ; THIS SHOULD BE WELL THOUGHT ABOUT LATER ON... right now keep it simple and return only data hash!
+    ; x=left.copy(/KEEP_ID)
+    ; temp=CLEAN_RS(x)
+    
+    ; insert new data
+    ; x.data=ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
+    ; x.parents=ORDEREDHASH([left.id,right.id],[left.legacy,right.legacy])
+    ; x.id="ID_"+STRTRIM(STRING(systime(1),FORMAT='(D0)'),2)
+  
+    RETURN,x
+END
+
+; -
+FUNCTION RoiSeries::_overloadMinus ,left,right
+    ; Check preconditions and return result
+    print,"ATTENTION BETA: this method needs some testing"
+    IF ISA(right,'ROISERIES') THEN BEGIN
+        test=ArithmPreCon_RS(left,right)
+        IF TYPENAME(test) EQ 'STRING' THEN Return,test
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),((right.data).values())))
+    ENDIF ELSE BEGIN
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),right))
+    ENDELSE
+END
+
+; *
+FUNCTION RoiSeries::_overloadAsterisk,left,right
+    ; Check preconditions and return result
+    print,"ATTENTION BETA: this method needs some testing"
+    IF ISA(right,'ROISERIES') THEN BEGIN
+        test=ArithmPreCon_RS(left,right)
+        IF TYPENAME(test) EQ 'STRING' THEN Return,test
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),((right.data).values())))
+    ENDIF ELSE BEGIN
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),right))
+    ENDELSE
+END
+
+; /
+FUNCTION RoiSeries::_overloadSlash ,left,right
+    ; Check preconditions and return result
+    print,"ATTENTION BETA: this method needs some testing"
+    IF ISA(right,'ROISERIES') THEN BEGIN
+        test=ArithmPreCon_RS(left,right)
+        IF TYPENAME(test) EQ 'STRING' THEN Return,test
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),((right.data).values())))
+    ENDIF ELSE BEGIN
+        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),right))
+    ENDELSE
+END
+
+; Overloading some standard methods
+;------------------------------------------------------------------------------
+; Custom size method since overloading the standard size method does not allow a hash to be returned
+; Returns a hash with key:Dimensions
+FUNCTION RoiSeries::DIMENSIONS
+  RETURN,((*(self.data)).map(LAMBDA(x:[size(x,/DIMENSIONS)])))
+END
+
+; Copy the whole object
+FUNCTION RoiSeries::copy,KEEP_ID=keep_id
+    ; make sure that the id is replaced by "ID_systime(1)" if KEEP_ID was not set:
+    IF KEYWORD_SET(KEEP_ID) THEN BEGIN
+        return,copyheap(self)
+    ENDIF ELSE BEGIN
+        x=copyheap(self)
+        IF STRMID(x.id,2,/REVERSE_OFFSET) EQ "_C_" THEN BEGIN
+            x.id=STRMID(x.id,0,STRLEN(x.id)-21)+"_"+STRTRIM(STRING(systime(1),FORMAT='(D0)'),2)+"_C_"
+            return,x
+        ENDIF ELSE BEGIN
+            x.id=x.id+"_"+STRTRIM(STRING(systime(1),FORMAT='(D0)'),2)+"_C_"
+            return,x
+        ENDELSE
+    ENDELSE
+END
+
+;===================== ADD INFOS ============================================================================
+; Store time information from filenames and position within those filenames. If /BASENAME is set position can be specified from start of filename (opposed to start of path)
+FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
+
+    ; Check input
+    IF TYPENAME(Filenames) NE "STRING" THEN RETURN,"Please provide filenames"
+
+    ; Generate a 1D array of dates    
+    FILENAMES=FILE_BASENAME(FILENAMES)
+    *(self.time)=GEN_DATE(FILENAMES,posYear,posMonth,posDay)
+    self->savetodb,"TIME_FROM_FILENAMES"
+    RETURN,1
+END
+
+
+; Store groundtruth information in object
+FUNCTION RoiSeries :: GROUNDTRUTH_FROM_CSV,csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate
+
+    ; get groundtruths
+    self.groundtruth=GROUNDTRUTH_FROM_CSV(csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate)
+    self->savetodb,"GroundTruth"
+    RETURN,1
+    
+END
+
+; Store class information for each roi in object
+FUNCTION RoiSeries :: classify,shp,ID_Colname,Class_Colname
+  
+    IF N_ELEMENTS(SHP) EQ 0 THEN RETURN,"Please provide path to shapefile"
+    IF N_ELEMENTS(ID_Colname) EQ 0 THEN RETURN,"Please provide name of id column"
+    IF N_ELEMENTS(Class_Colname) EQ 0 THEN RETURN, "Please provide name of class colum"
+    
+    ; extract attributes
+    myshape= OBJ_NEW('IDLffShape', SHP)
+    myshape->GetProperty,ATTRIBUTE_NAMES=attribute_names
+    id=(myshape->getAttributes(/ALL)).(WHERE(attribute_names eq ID_Colname))
+    class=(myshape->getAttributes(/ALL)).(WHERE(attribute_names eq Class_Colname))
+    cHash=HASH(TEMPORARY(id),TEMPORARY(class))
+    
+    ; remove entries that do not exist in self.data 
+    *(self.class)=cHash[(*(self.data)).keys()]
+    self->savetodb,"classify"
+    return,1
+END
+
+; Extract certain classes out of object
+FUNCTION RoiSeries :: GetClass, class
+    selfC=copyheap(self)
+    keys=(*(selfC.class)).where(class)
+    *(selfC.data)=(*(selfC.data))[keys]
+    *(selfC.class)=(*(selfC.class))[keys]
+    
+    selfC->savetodb,"Get:"+class
+    Return,selfC
+END
+
+; Filter Data
+FUNCTION RoiSeries::temporal_filter,TYPE,N
+    ; 1. Check if the time series is equally distributed (all temporal differences are the same)
+    IF self.time EQ !NULL THEN MESSAGE,"The time property has to be set first!"
+    temp_diff=((TS_DIFF(*self.time,1))[0:-2])
+    x=temp_diff[sort(temp_diff)]
+    IF x[0] NE x[-1] THEN BEGIN &$
+        PRINT,"The time property has unequally distributed time differences. Have a look at the returned numbers."
+        RETURN,temp_diff
+    ENDIF
+  
+    CASE TYPE OF
+        "FFT": BEGIN
+                   PRINT,"NEEDS TO BE UPDATED, RESULTS AND ROUTINE UNRELIABLE!: MOVED HERE FROM 1D"
+                   ; test arithmetic conditions
+                   conditions=ArithmPreCon_RS(self,N)
+                   IF conditions NE 1 THEN RETURN,0
+            
+                   ; get out data
+                   self_dat=*(self.data)
+                   N_dat=N->get()
+            
+                   ; do calculations
+                   FOREACH ROI,self_dat.keys() DO BEGIN; Cannot handle NaN (FFT)
+                       self_dat[ROI]=FFT(self_dat[ROI])
+                       N_dat[ROI]=FFT(N_dat[ROI])
+                       self_dat[ROI]=self_dat[ROI]-N_dat[ROI]
+                       self_dat[ROI]=FFT(self_dat[ROI],/INVERSE)
+                   ENDFOREACH
+            
+                   ; update legacy
+                   self->savetodb,("filter_"+TYPE+(N->get("id")))
+                   RETURN,1
+               END
+               
+               ;"SUM": BEGIN
+               ;  FOREACH ROI,(*(self.data)).keys() DO (*(self.data))[ROI]=MovingTotal((*(self.data))[ROI])
+               ;  self->savetodb,("filter_"+TYPE+STRTRIM(N,2)+"_"+SET)
+               ;  RETURN,1
+               ;END
+  
+               ;----------- WRAPED OBJECTS -----------------------------------------------------------------------------
+  
+               ;    "NoDATA": BEGIN
+               ;      IF STRMID(self.status,0,6) EQ "unwrap" THEN RETURN,"The NoDATA filter was designed for wraped=set objects, using an unwraped object would result in false values"
+               ;      data=*(self.data)
+               ;      FOREACH raster,data.keys() DO BEGIN &$
+               ;        FOREACH ID,(data(raster)).keys() DO BEGIN &$
+               ;          FOR I=0,(N_ELEMENTS((data(raster))(ID))-1) DO BEGIN &$
+               ;            number=((data(raster))(ID))[I] &$
+               ;            IF (number LT N[0] || number GT N[1]) THEN BEGIN &$
+               ;              x=DOUBLE((data(raster))(ID)) &$
+               ;              x[I]=!VALUES.D_NAN &$
+               ;              ((data(raster))(ID))=x&$
+               ;            ENDIF &$
+               ;          ENDFOR  &$
+               ;        ENDFOREACH &$
+               ;      ENDFOREACH
+               ;    (*(self.data))=data
+               ;    self->savetodb,("filter_"+TYPE+"_"+STRTRIM(N[0],2)+"_"+STRTRIM(N[1],2))
+               ;    RETURN,1
+               ;
+               ;  END
+  
+               ELSE: FOREACH ROI,(*(self.data)).keys() DO (*(self.data))[ROI]=(MovingStats((*(self.data))[ROI],N))[STRLOWCASE(TYPE)]
+    ENDCASE
+    
+    ; update time property
+    *(self.time)=(*(self.time))[N-1:*]
+    RETURN,1
+
+END
+
+;====================== OBJECT DEFINITION =====================================================================
+PRO RoiSeries__define,void
+    COMPILE_OPT idl2, HIDDEN 
+    void={RoiSeries, $
+        data : ptr_new(),$
+        time : ptr_new(),$ ; changed to array
+        groundtruth: ORDEREDHASH(),$ ; e. g. MAHD :)
+        parents: ptr_new(),$; e. g. (ID1:legacy1,ID2:legacy2)
+        legacy : ptr_new(),$  ; to store calculation legacy
+        DB : '',$ ; The place to store the steps
+        id : '',$ ;to have an ID to reference object (for legacy)
+        class: ptr_new(), $ ; to be able to classify rois
+        no_save:BOOLEAN(0), $ ; enable saving by default
+        unit:ptr_new(),$
+    INHERITS IDL_OBJECT} ; to overload IDL get properties methods
+END
