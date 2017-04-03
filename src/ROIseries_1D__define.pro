@@ -59,19 +59,19 @@ FUNCTION ROIseries_1D :: normalize
 END
 
 ; Interpolate one RS Object to another to have the same time intervalls
-PRO ROIseries_1D :: interpolateTO,OtherObject ;Extra/Intra Ultrapolate the current object onto the other one
+PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the current object onto the other one
   
     ; Get Old (SELF) and new(OTHER) time Values
-    *self.data=interpolateTO_RS(*self.time,OtherObject.time,*(self.data))
+    *self.data=RS_interpolate_to(*self.time,other_object.time,*(self.data))
     
     ; store the resulting times:
     ; Generated keys:
-    CALDAT,LONG(OtherObject.time),Months,Days,Years
-    baseName=self.id+"->InterpolatedTO("+OtherObject.id+")"
+    CALDAT,LONG(other_object.time),Months,Days,Years
+    baseName=self.id+"->InterpolatedTO("+other_object.id+")"
     names=[] ;
     FOR I=0,(N_ELEMENTS(Years)-1) DO names=[names,baseName+"_"+STRTRIM(Years[I],2)+STRTRIM(Months[I],2)+STRTRIM(Days[I],2)]
-    *(self.time)=OtherObject.time
-    self->savetodb,"InterpolatedTO_"+(OtherObject.id)
+    *(self.time)=other_object.time
+    self->savetodb,"InterpolatedTO_"+(other_object.id)
 END
 
 ; saves the features per time step and roi to a csv.
