@@ -110,7 +110,7 @@ FUNCTION RoiSeries::_overloadPlus,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=ArithmPreCon_RS(left,right)
+        test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
         RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
     ENDIF ELSE BEGIN
@@ -134,7 +134,7 @@ FUNCTION RoiSeries::_overloadMinus ,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=ArithmPreCon_RS(left,right)
+        test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
         RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),((right.data).values())))
     ENDIF ELSE BEGIN
@@ -147,7 +147,7 @@ FUNCTION RoiSeries::_overloadAsterisk,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=ArithmPreCon_RS(left,right)
+        test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
         RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),((right.data).values())))
     ENDIF ELSE BEGIN
@@ -160,7 +160,7 @@ FUNCTION RoiSeries::_overloadSlash ,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=ArithmPreCon_RS(left,right)
+        test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
         RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),((right.data).values())))
     ENDIF ELSE BEGIN
@@ -264,7 +264,7 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
         "FFT": BEGIN
                    PRINT,"NEEDS TO BE UPDATED, RESULTS AND ROUTINE UNRELIABLE!: MOVED HERE FROM 1D"
                    ; test arithmetic conditions
-                   conditions=ArithmPreCon_RS(self,N)
+                   conditions=RS_check_arithmetic_compatibility(self,N)
                    IF conditions NE 1 THEN RETURN,0
             
                    ; get out data
