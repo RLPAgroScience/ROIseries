@@ -58,7 +58,7 @@ FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
 END
 
 ; calculate different attributes and save them as CSV
-FUNCTION ROIseries_3D :: FeaturesToCSV,FEATURES,CSV,PREFIX=prefix
+FUNCTION ROIseries_3D :: features_to_csv,FEATURES,CSV,PREFIX=prefix
     IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
     
     data=*(self.data)
@@ -74,10 +74,10 @@ FUNCTION ROIseries_3D :: FeaturesToCSV,FEATURES,CSV,PREFIX=prefix
             dataCurrent=data.map(Lambda(x,count:REFORM(x[*,*,count])),c) ; select current time step c
             dataCurrentPTR=ptr_new(dataCurrent)
             csvCurrent=FILE_DIRNAME(csv)+"\"+FILE_BASENAME(CSV,".csv")+"_"+t+".csv"
-            FtoCSV_RS,FEATURES,csvCurrent,dataCurrentPTR,PREFIX=prefix+"_"+t+"_"
+            RS3D_features_to_csv,FEATURES,csvCurrent,dataCurrentPTR,PREFIX=prefix+"_"+t+"_"
         ENDFOREACH
     ENDIF ELSE BEGIN
-        FtoCSV_RS,FEATURES,CSV,self.data,PREFIX=prefix
+        RS3D_features_to_csv,FEATURES,CSV,self.data,PREFIX=prefix
     ENDELSE
     RETURN,1
 END
