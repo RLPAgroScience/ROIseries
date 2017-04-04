@@ -63,6 +63,15 @@ L = 1
 G = 2.5
 EVI = (NIR - RED)/(NIR + RED * C1 - BLUE * C2 + L) * G
 
+; FIRE, GIRLS, MONEY, 9.1*10^-31 (or whatever makes you read the next lines :)):
+; Caution has to be exercised when using numbers in such an expression (Like C1, C2, L and G):
+;     They need to be placed as the 'right' argument e. g.:
+;          Correct: NIR * 42
+;          Wrong: 42 * NIR 
+;      The reason is that the arithmetic functionality is defined for the ROIseries object, but undefined for a numeric value
+;      For background information check the operator overloading functionality on e. g.:
+;          https://www.harrisgeospatial.com/docs/IDL_Object_overloadAsterisk.html
+
 ; When array arithmetics are applied all metadata is lost since it is unpredictable what metadata would make sense to be kept.
 ; One exception is the time attribute which has to be the same for all objects anyway and is checked and handed over internally.
 EVI.id = "EVI"
