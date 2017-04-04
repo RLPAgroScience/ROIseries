@@ -109,63 +109,64 @@ END
 FUNCTION RoiSeries::_overloadPlus,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
+    result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=RS_check_arithmetic_compatibility(left,right)
+        test=RS_CHECK_ARITHMETIC_COMPATIBILITY(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
     ENDIF ELSE BEGIN
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),right))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),right))
     ENDELSE
-    ; make new object that has all checked properties, new data, "id:legacy" from parents and everything else set to Null
-    ; THIS SHOULD BE WELL THOUGHT ABOUT LATER ON... right now keep it simple and return only data hash!
-    ; x=left.copy(/KEEP_ID)
-    ; temp=CLEAN_RS(x)
-    
-    ; insert new data
-    ; x.data=ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x+y),((right.data).values())))
-    ; x.parents=ORDEREDHASH([left.id,right.id],[left.legacy,right.legacy])
-    ; x.id="ID_"+STRTRIM(STRING(systime(1),FORMAT='(D0)'),2)
-  
-    RETURN,x
+    result.time = left.time
+    RETURN,result
 END
 
 ; -
 FUNCTION RoiSeries::_overloadMinus ,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
+    result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
-        test=RS_check_arithmetic_compatibility(left,right)
+        test=RS_CHECK_ARITHMETIC_COMPATIBILITY(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),((right.data).values())))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),((right.data).values())))
     ENDIF ELSE BEGIN
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),right))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x-y),right))
     ENDELSE
+    result.time = left.time
+    RETURN,result
 END
 
 ; *
 FUNCTION RoiSeries::_overloadAsterisk,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
+    result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),((right.data).values())))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),((right.data).values())))
     ENDIF ELSE BEGIN
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),right))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x*y),right))
     ENDELSE
+    result.time = left.time
+    RETURN,result
 END
 
 ; /
 FUNCTION RoiSeries::_overloadSlash ,left,right
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
+    result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_check_arithmetic_compatibility(left,right)
         IF TYPENAME(test) EQ 'STRING' THEN Return,test
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),((right.data).values())))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),((right.data).values())))
     ENDIF ELSE BEGIN
-        RETURN,ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),right))
+        result.data = ORDEREDHASH(((left.data).keys()),((left.data).values()).map(LAMBDA(x,y:x/y),right))
     ENDELSE
+    result.time = left.time
+    RETURN,result
 END
 
 ; Overloading some standard methods
@@ -201,8 +202,8 @@ FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
     IF TYPENAME(Filenames) NE "STRING" THEN RETURN,"Please provide filenames"
 
     ; Generate a 1D array of dates    
-    FILENAMES=FILE_BASENAME(FILENAMES)
-    *(self.time)=GEN_DATE(FILENAMES,posYear,posMonth,posDay)
+    basenames = FILE_BASENAME(filenames)
+    *(self.time)=GEN_DATE(basenames,posYear,posMonth,posDay)
     self->savetodb,"TIME_FROM_FILENAMES"
     RETURN,1
 END
