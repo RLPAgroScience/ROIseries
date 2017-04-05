@@ -20,6 +20,8 @@
 
 ; Initialize with defaults
 FUNCTION RoiSeries :: init
+    COMPILE_OPT idl2, HIDDEN
+    
     self.data=ptr_new(/allocate)
     self.parents=ptr_new(/allocate)
     self.legacy=ptr_new(/allocate)
@@ -34,6 +36,8 @@ END
 
 ; Save object to db
 PRO RoiSeries :: savetodb,step
+    COMPILE_OPT idl2, HIDDEN
+    
     IF self.no_save THEN BEGIN
         path=!Values.F_NAN
     ENDIF ELSE BEGIN
@@ -51,6 +55,8 @@ END
 
 ; Restore object to specified "step" from DB folder
 FUNCTION RoiSeries :: reset,step
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Test if save was enabled.
     ; Not testing on self.no_save makes it possible to save only certain steps:
     ; IF ((*(self.legacy))[step]) EQ !Values.F_NAN THEN RETURN,"NO_SAVE was set"
@@ -62,6 +68,8 @@ END
 ; Overloading some standard methods
 ; [] Overloading
 FUNCTION RoiSeries::_overloadBracketsRightSide,isRange, sub
+    COMPILE_OPT idl2, HIDDEN
+    
     IF isRange THEN print,"Ranges are not yet supported, use a list of keys instead"
     ; make a copy of the object and remove values that are not in the list sub1
     x=copyheap(self)
@@ -72,6 +80,7 @@ END
 
 ; Get attributes out of Object: Thanks a lot for the inspiration!! (https://www.idlcoyote.com/tips/getproperty.html)
 PRO RoiSeries::GetProperty,_ref_extra=extra
+    COMPILE_OPT idl2, HIDDEN
 
     Call_Procedure , Obj_Class(self)+'__define', struct
     index=(WHERE(Tag_Names(struct) EQ ((STRUPCASE(extra))[0]),count))[0]
@@ -88,6 +97,8 @@ PRO RoiSeries::GetProperty,_ref_extra=extra
 END
 
 PRO RoiSeries::SetProperty,_extra=extra
+    COMPILE_OPT idl2, HIDDEN
+    
     Call_Procedure , Obj_Class(self)+'__define', struct
     name=((STRUPCASE(tag_names(extra)))[0])
     index=(WHERE(Tag_Names(struct) EQ name,count))[0]
@@ -107,6 +118,8 @@ END
 ; Overloading Arithmetics
 ; +
 FUNCTION RoiSeries::_overloadPlus,left,right
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
@@ -123,6 +136,8 @@ END
 
 ; -
 FUNCTION RoiSeries::_overloadMinus ,left,right
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
@@ -139,6 +154,8 @@ END
 
 ; *
 FUNCTION RoiSeries::_overloadAsterisk,left,right
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
@@ -155,6 +172,8 @@ END
 
 ; /
 FUNCTION RoiSeries::_overloadSlash ,left,right
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Check preconditions and return result
     print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
@@ -174,11 +193,15 @@ END
 ; Custom size method since overloading the standard size method does not allow a hash to be returned
 ; Returns a hash with key:Dimensions
 FUNCTION RoiSeries::DIMENSIONS
+  COMPILE_OPT idl2, HIDDEN
+  
   RETURN,((*(self.data)).map(LAMBDA(x:[size(x,/DIMENSIONS)])))
 END
 
 ; Copy the whole object
 FUNCTION RoiSeries::copy,KEEP_ID=keep_id
+    COMPILE_OPT idl2, HIDDEN
+    
     ; make sure that the id is replaced by "ID_systime(1)" if KEEP_ID was not set:
     IF KEYWORD_SET(KEEP_ID) THEN BEGIN
         return,copyheap(self)
@@ -197,7 +220,8 @@ END
 ;===================== ADD INFOS ============================================================================
 ; Store time information from filenames and position within those filenames. If /BASENAME is set position can be specified from start of filename (opposed to start of path)
 FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
-
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Check input
     IF TYPENAME(Filenames) NE "STRING" THEN RETURN,"Please provide filenames"
 
@@ -211,7 +235,8 @@ END
 
 ; Store groundtruth information in object
 FUNCTION RoiSeries :: GROUNDTRUTH_FROM_CSV,csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate
-
+    COMPILE_OPT idl2, HIDDEN
+    
     ; get groundtruths
     self.groundtruth=GROUNDTRUTH_FROM_CSV(csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate)
     self->savetodb,"GroundTruth"
@@ -221,7 +246,8 @@ END
 
 ; Store class information for each roi in object
 FUNCTION RoiSeries :: classify,shp,ID_Colname,Class_Colname
-  
+    COMPILE_OPT idl2, HIDDEN
+    
     IF N_ELEMENTS(SHP) EQ 0 THEN RETURN,"Please provide path to shapefile"
     IF N_ELEMENTS(ID_Colname) EQ 0 THEN RETURN,"Please provide name of id column"
     IF N_ELEMENTS(Class_Colname) EQ 0 THEN RETURN, "Please provide name of class colum"
@@ -241,6 +267,8 @@ END
 
 ; Extract certain classes out of object
 FUNCTION RoiSeries :: GetClass, class
+    COMPILE_OPT idl2, HIDDEN
+    
     selfC=copyheap(self)
     keys=(*(selfC.class)).where(class)
     *(selfC.data)=(*(selfC.data))[keys]
@@ -252,6 +280,8 @@ END
 
 ; Filter Data
 FUNCTION RoiSeries::temporal_filter,TYPE,N
+    COMPILE_OPT idl2, HIDDEN
+    
     ; 1. Check if the time series is equally distributed (all temporal differences are the same)
     IF self.time EQ !NULL THEN MESSAGE,"The time property has to be set first!"
     temp_diff=((TS_DIFF(*self.time,1))[0:-2])

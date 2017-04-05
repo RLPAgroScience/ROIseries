@@ -21,7 +21,8 @@
 ;======================= Ploting ============================================================================
 ; Plot the RoiSeries
 FUNCTION ROIseries_1D :: plot,_REF_EXTRA=e;ID=id,FORMAT=format,PATH=path,GROUNDTRUTH_TYPES=groundtruth_types,OTHEROBJECTS=otherobjects,MIX=mix,CLASS=class,TITLE=title
-  
+    COMPILE_OPT idl2, HIDDEN
+    
     IF N_ELEMENTS(*(self.time)) EQ 0 THEN RETURN,"Please add time attribute first"
   
     IF N_ELEMENTS(PATH) EQ 0 THEN BEGIN
@@ -44,6 +45,8 @@ END
 ;; Normalize one RS object
 ; for formulas check: http://en.wikipedia.org/wiki/Normalization_%28statistics%29
 FUNCTION ROIseries_1D :: normalize  
+    COMPILE_OPT idl2, HIDDEN
+    
     keys=((*(self.data)).keys()).ToArray()
     dat=((*(self.data)).values()).ToArray()
     
@@ -60,7 +63,8 @@ END
 
 ; Interpolate one RS Object to another to have the same time intervalls
 PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the current object onto the other one
-  
+    COMPILE_OPT idl2, HIDDEN
+    
     ; Get Old (SELF) and new(OTHER) time Values
     *self.data=RS_interpolate_to(*self.time,other_object.time,*(self.data))
     
@@ -76,6 +80,8 @@ END
 
 ; saves the features per time step and roi to a csv.
 FUNCTION ROIseries_1D :: FeaturesToCSV,FEATURES,CSV,PREFIX=prefix
+    COMPILE_OPT idl2, HIDDEN
+    
     IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
     
     data=*(self.data)
