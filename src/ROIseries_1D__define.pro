@@ -23,8 +23,9 @@
 FUNCTION ROIseries_1D :: plot,_REF_EXTRA=e;ID=id,FORMAT=format,PATH=path,GROUNDTRUTH_TYPES=groundtruth_types,OTHEROBJECTS=otherobjects,MIX=mix,CLASS=class,TITLE=title
     COMPILE_OPT idl2, HIDDEN
     
-    IF N_ELEMENTS(*(self.time)) EQ 0 THEN RETURN,"Please add time attribute first"
-  
+    IF N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Please add time attribute first"
+    IF N_ELEMENTS(self.unit) EQ 0 THEN MESSAGE,"Plaase add [x,y] unit attribute first"
+    
     IF N_ELEMENTS(PATH) EQ 0 THEN BEGIN
         PATH=self.DB+"plots\"
         print,"Plots will be saved to:"+PATH
@@ -47,14 +48,14 @@ END
 FUNCTION ROIseries_1D :: normalize  
     COMPILE_OPT idl2, HIDDEN
     
-    keys=((*(self.data)).keys()).ToArray()
-    dat=((*(self.data)).values()).ToArray()
+    keys=((self.data).keys()).ToArray()
+    dat=((self.data).values()).ToArray()
     
     FOR I=0,(N_ELEMENTS(dat[*,0])-1) DO BEGIN
         min=MIN(dat[I,*],/NAN)
         max=MAX(dat[I,*],/NAN)
         normal=(dat[I,*]-min)/(max-min)
-        (*(self.data))[keys[I]]=REFORM(normal) ; REFORM to eliminate empty dimensions
+        (self.data)[keys[I]]=REFORM(normal) ; REFORM to eliminate empty dimensions
     ENDFOR
     
     self->savetodb,"normalize"
@@ -66,7 +67,7 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
     COMPILE_OPT idl2, HIDDEN
     
     ; Get Old (SELF) and new(OTHER) time Values
-    *self.data=RS_interpolate_to(*self.time,other_object.time,*(self.data))
+    self.data=RS_interpolate_to(self.time,other_object.time,self.data)
     
     ; store the resulting times:
     ; Generated keys:
@@ -74,7 +75,7 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
     baseName=self.id+"->InterpolatedTO("+other_object.id+")"
     names=[] ;
     FOR I=0,(N_ELEMENTS(Years)-1) DO names=[names,baseName+"_"+STRTRIM(Years[I],2)+STRTRIM(Months[I],2)+STRTRIM(Days[I],2)]
-    *(self.time)=other_object.time
+    self.time=other_object.time
     self->savetodb,"InterpolatedTO_"+(other_object.id)
 END
 
@@ -84,9 +85,9 @@ FUNCTION ROIseries_1D :: FeaturesToCSV,FEATURES,CSV,PREFIX=prefix
     
     IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
     
-    data=*(self.data)
+    data=self.data
     data_0=data[((data.keys())[0])]
-    time=STRTRIM(*(self.time),2)
+    time=STRTRIM(self.time,2)
     
     ; compare time to last (temporal) dimension
     IF N_ELEMENTS(time) NE (SIZE(data_0,/DIMENSIONS)) THEN RETURN,"length of time attribute and temporal array dimension differ"

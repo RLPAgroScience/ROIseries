@@ -22,15 +22,15 @@
 FUNCTION RoiSeries :: init
     COMPILE_OPT idl2, HIDDEN
     
-    self.data=ptr_new(/allocate)
-    self.parents=ptr_new(/allocate)
-    self.legacy=ptr_new(/allocate)
-    self.DB=""
-    self.id=""
-    self.time=ptr_new(/allocate)
-    self.class=ptr_new(/allocate)
+    self.data=HASH()
+    self.parents=HASH()
+    self.legacy=ORDEREDHASH()
+    self.DB=''
+    self.id=''
+    self.time=LIST()
+    self.class=HASH()
     self.no_save = 0
-    self.unit=ptr_new(/allocate)
+    self.unit=LIST()
     RETURN,1
 END
 
@@ -42,10 +42,10 @@ PRO RoiSeries :: savetodb,step
         path=!Values.F_NAN
     ENDIF ELSE BEGIN
         path=self.db+step+".sav"
-        IF *(self.legacy) EQ !NULL THEN BEGIN
-            *(self.legacy)=ORDEREDHASH(step,path)
+        IF N_ELEMENTS(self.legacy) EQ !NULL THEN BEGIN
+            self.legacy=ORDEREDHASH(step,path)
         ENDIF ELSE BEGIN
-            *(self.legacy)=*(self.legacy)+ORDEREDHASH(step,path)
+            self.legacy=(self.legacy)+ORDEREDHASH(step,path)
         ENDELSE
         (SCOPE_VARFETCH(step,/ENTER))=self.copy(/KEEP_ID)
         SAVE,FILENAME=path,(SCOPE_VARFETCH(step,/ENTER))
@@ -60,7 +60,7 @@ FUNCTION RoiSeries :: reset,step
     ; Test if save was enabled.
     ; Not testing on self.no_save makes it possible to save only certain steps:
     ; IF ((*(self.legacy))[step]) EQ !Values.F_NAN THEN RETURN,"NO_SAVE was set"
-    RESTORE,((*(self.legacy))[step])
+    RESTORE,((self.legacy)[step])
     RETURN,(scope_varfetch(step,/ENTER))
 END
 
@@ -195,7 +195,7 @@ END
 FUNCTION RoiSeries::DIMENSIONS
   COMPILE_OPT idl2, HIDDEN
   
-  RETURN,((*(self.data)).map(LAMBDA(x:[size(x,/DIMENSIONS)])))
+  RETURN,((self.data).map(LAMBDA(x:[size(x,/DIMENSIONS)])))
 END
 
 ; Copy the whole object
@@ -227,7 +227,7 @@ FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
 
     ; Generate a 1D array of dates    
     basenames = FILE_BASENAME(filenames)
-    *(self.time)=GEN_DATE(basenames,posYear,posMonth,posDay)
+    self.time=LIST(GEN_DATE(basenames,posYear,posMonth,posDay),/EXTRACT)
     self->savetodb,"TIME_FROM_FILENAMES"
     RETURN,1
 END
@@ -260,7 +260,7 @@ FUNCTION RoiSeries :: classify,shp,ID_Colname,Class_Colname
     cHash=HASH(TEMPORARY(id),TEMPORARY(class))
     
     ; remove entries that do not exist in self.data 
-    *(self.class)=cHash[(*(self.data)).keys()]
+    self.class=cHash[(self.data).keys()]
     self->savetodb,"classify"
     return,1
 END
@@ -270,9 +270,9 @@ FUNCTION RoiSeries :: GetClass, class
     COMPILE_OPT idl2, HIDDEN
     
     selfC=copyheap(self)
-    keys=(*(selfC.class)).where(class)
-    *(selfC.data)=(*(selfC.data))[keys]
-    *(selfC.class)=(*(selfC.class))[keys]
+    keys=(selfC.class).where(class)
+    selfC.data=(selfC.data)[keys]
+    selfC.class=(selfC.class)[keys]
     
     selfC->savetodb,"Get:"+class
     Return,selfC
@@ -284,7 +284,7 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
     
     ; 1. Check if the time series is equally distributed (all temporal differences are the same)
     IF self.time EQ !NULL THEN MESSAGE,"The time property has to be set first!"
-    temp_diff=((TS_DIFF(*self.time,1))[0:-2])
+    temp_diff=((TS_DIFF(self.time,1))[0:-2])
     x=temp_diff[sort(temp_diff)]
     IF x[0] NE x[-1] THEN BEGIN &$
         PRINT,"The time property has unequally distributed time differences. Have a look at the returned numbers."
@@ -299,7 +299,7 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
                    IF conditions NE 1 THEN RETURN,0
             
                    ; get out data
-                   self_dat=*(self.data)
+                   self_dat=self.data
                    N_dat=N->get()
             
                    ; do calculations
@@ -344,11 +344,11 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
                ;
                ;  END
   
-               ELSE: FOREACH ROI,(*(self.data)).keys() DO (*(self.data))[ROI]=(MovingStats((*(self.data))[ROI],N))[STRLOWCASE(TYPE)]
+               ELSE: FOREACH ROI,(self.data).keys() DO (self.data)[ROI]=(MovingStats((self.data)[ROI],N))[STRLOWCASE(TYPE)]
     ENDCASE
     
     ; update time property
-    *(self.time)=(*(self.time))[N-1:*]
+    self.time=(self.time)[N-1:*]
     RETURN,1
 
 END
@@ -357,15 +357,15 @@ END
 PRO RoiSeries__define,void
     COMPILE_OPT idl2, HIDDEN 
     void={RoiSeries, $
-        data : ptr_new(),$
-        time : ptr_new(),$ ; changed to array
-        groundtruth: ORDEREDHASH(),$ ; e. g. MAHD :)
-        parents: ptr_new(),$; e. g. (ID1:legacy1,ID2:legacy2)
-        legacy : ptr_new(),$  ; to store calculation legacy
+        data : HASH(),$
+        time : LIST(),$
+        groundtruth: HASH(),$ ; e. g. MAHD :)
+        parents: HASH(),$; e. g. (ID1:legacy1,ID2:legacy2)
+        legacy : ORDEREDHASH(),$  ; to store calculation legacy
         DB : '',$ ; The place to store the steps
         id : '',$ ;to have an ID to reference object (for legacy)
-        class: ptr_new(), $ ; to be able to classify rois
+        class: HASH(), $ ; to be able to classify rois
         no_save:BOOLEAN(0), $ ; enable saving by default
-        unit:ptr_new(),$
+        unit:LIST(),$
     INHERITS IDL_OBJECT} ; to overload IDL get properties methods
 END

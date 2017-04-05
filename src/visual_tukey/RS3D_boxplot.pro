@@ -66,8 +66,9 @@ PRO RS3D_boxplot,self,ID=id,BP_WIDTH=bp_width,NONTEMPORALUNIT=nontemporalunit,_S
         
         ; set standard width to a quater of the average distance between each xtick
         IF N_ELEMENTS(bp_width) EQ 0 THEN bp_width = 8
-        w=((MAX(self.time)-MIN(self.time))/N_ELEMENTS(self.time))/bp_width
-        bp=BOXPLOT(self.time,box_dat,COLOR="black",WIDTH=w,TITLE=tit,xtitle=((self.unit)[0]),ytitle=((self.unit)[1]),XTICKUNITS=[XTICK],/OVERPLOT,BUFFER=BUF) ;
+        time = (self.time).ToArray()
+        w=((MAX(time)-MIN(time))/N_ELEMENTS(time))/bp_width
+        bp=BOXPLOT(time,box_dat,COLOR="black",WIDTH=w,TITLE=tit,xtitle=((self.unit)[0]),ytitle=((self.unit)[1]),XTICKUNITS=[XTICK],/OVERPLOT,BUFFER=BUF) ;
         
         IF N_ELEMENTS(ID) GT 1 THEN BEGIN
             w=GetWindows(NAMES=winNames,/CURRENT)

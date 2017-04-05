@@ -106,7 +106,7 @@ PRO RS1D_plot,RS_1D_self,ID=id,FORMAT=format,COLORTABLE_NB=colortable_NB,PATH=pa
     ENDELSE
     
     plot_margin=[0.15,  0.35,0.15, 0.15]
-    Time=RS_1D_self.time
+    Time=(RS_1D_self.time).ToArray()
     plot_xrange=[MIN(Time),MAX(Time)]
     IF N_ELEMENTS(FORMAT) EQ 0 THEN FORMAT= '-.'; '__.'
     mini = MIN((dat.values()).ToArray(),MAX=maxi, /NAN)
@@ -155,7 +155,7 @@ PRO RS1D_plot,RS_1D_self,ID=id,FORMAT=format,COLORTABLE_NB=colortable_NB,PATH=pa
                     PRINT,"Object with id: "+id+ "had only NaN values and thus was skipped"
                 ENDIF ELSE BEGIN
                     object_nb++
-                    ooV=[ooV,PLOT(OO.time,(OO.data)[id],FORMAT,COLOR=REFORM(colors[object_nb,*]),SYM_SIZE=1,SYM_FILLED=1,/OVERPLOT,NAME=OO.id)]
+                    ooV=[ooV,PLOT((OO.time).ToAarray(),(OO.data)[id],FORMAT,COLOR=REFORM(colors[object_nb,*]),SYM_SIZE=1,SYM_FILLED=1,/OVERPLOT,NAME=OO.id)]
                 ENDELSE
             ENDFOREACH
             l1=LEGEND(TARGET=[p1,oov],POSITION=[0.9,0.2])    

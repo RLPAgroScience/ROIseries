@@ -43,8 +43,7 @@ FUNCTION ROIseries_3D :: COOKIE_CUTTER,id,db,SHAPEFILE, ID_COLNAME , RASTER, SPE
     IF FILE_TEST(DB,/DIRECTORY) EQ 0 THEN FILE_MKDIR,DB
     self.db = db
     self.id = id
-    
-    *self.data=COOKIE_CUTTER(SHAPEFILE, ID_COLNAME , RASTER, SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling)
+    self.data=COOKIE_CUTTER(SHAPEFILE, ID_COLNAME , RASTER, SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling)
     self->savetodb,"cookie_cutter"
     RETURN,1
 END
@@ -52,17 +51,17 @@ END
 ; Reduce spatial dimension to convert 3D to 1D object:
 FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     COMPILE_OPT idl2, HIDDEN
-    
+
     RS1D = ROIseries_1D() 
     RS1D.parents = self.parents
-    RS1D.legacy = *(self.legacy)
+    RS1D.legacy = self.legacy
     RS1D.DB = self.db
     RS1D.id = self.id
-    RS1D.time = *(self.time)
+    RS1D.time = self.time
     RS1D.class = self.class
     RS1D.no_save = self.no_save
     RS1D.unit = self.unit
-    RS1D.data=spatial_mixer(*(self.data),statistics_type)
+    RS1D.data=spatial_mixer(self.data,statistics_type)
     RS1D.savetodb,"spatial_mixer_"+statistics_type
     RETURN,RS1D
 END
@@ -73,10 +72,10 @@ FUNCTION ROIseries_3D :: features_to_csv,FEATURES,CSV,PREFIX=prefix
     
     IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
     
-    data=*(self.data)
+    data=self.data
     data_0=data[((data.keys())[0])]
     IF SIZE(data_0,/N_DIMENSIONS) EQ 3 THEN BEGIN ; check if temporal data dimension is still present
-        time=STRTRIM(*(self.time),2)
+        time=STRTRIM(self.time,2)
         ; compare time to last (temporal) dimension
         IF N_ELEMENTS(time) NE (SIZE(data_0,/DIMENSIONS))[2] THEN RETURN,"length of time attribute and temporal array dimension differ"
         
@@ -99,7 +98,7 @@ FUNCTION ROIseries_3D :: plot,_EXTRA = e ; TO_FILE=to_file,PATH=path
     COMPILE_OPT idl2, HIDDEN
     
     ; Check input
-    IF N_ELEMENTS(*(self.time)) EQ 0 THEN RETURN,"Please add time attribute first"
+    IF N_ELEMENTS(self.time) EQ 0 THEN RETURN,"Please add time attribute first"
     IF N_ELEMENTS(TO_FILE) EQ 1 && N_ELEMENTS(TO_FILE) EQ 0 THEN BEGIN
         PATH=self.DB+"plots\"
         print,"Plots will be saved to:"+PATH
@@ -115,7 +114,7 @@ FUNCTION ROIseries_3D :: boxplot,_EXTRA = e ; TO_FILE=to_file,PATH=path
     COMPILE_OPT idl2, HIDDEN
     
     ; Check input
-    IF N_ELEMENTS(*(self.time)) EQ 0 THEN RETURN,"Please add time attribute first"
+    IF N_ELEMENTS(self.time) EQ 0 THEN RETURN,"Please add time attribute first"
         IF N_ELEMENTS(TO_FILE) EQ 1 && N_ELEMENTS(TO_FILE) EQ 0 THEN BEGIN
         PATH=self.DB+"plots\"
         print,"Plots will be saved to:"+PATH
@@ -129,7 +128,7 @@ END
 PRO ROIseries_3D :: XVOLUME,ID,REVERSE=reverse
     COMPILE_OPT idl2, HIDDEN
     
-    data = (*(self.data))[ID]
+    data = (self.data)[ID]
     
     ; Flip immage along horizontal axis
     IF KEYWORD_SET(REVERSE) THEN data = REVERSE(data,2)
