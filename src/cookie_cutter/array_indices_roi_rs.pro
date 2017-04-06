@@ -141,7 +141,7 @@ FUNCTION ARRAY_INDICES_ROI_RS,Raster,Shp,ID,UPSAMPLING=upsampling,PUMPUP=pumpup
     
     IF N_ELEMENTS(PUMPUP) NE 0 THEN BEGIN
         print,"Pumping up"
-        func=LAMBDA(a,pumpup:[[REPCON(REFORM(a[0,*]),PUMPUP,1)],[REPCON(REFORM(a[1,*]),PUMPUP,1)],[REBIN(INDGEN(PUMPUP),N_ELEMENTS([REPCON(REFORM(a[1,*]),PUMPUP,1)]))]])
+        func=LAMBDA(a,pumpup:[[REPCON_RS(REFORM(a[0,*]),PUMPUP,1)],[REPCON_RS(REFORM(a[1,*]),PUMPUP,1)],[REBIN(INDGEN(PUMPUP),N_ELEMENTS([REPCON_RS(REFORM(a[1,*]),PUMPUP,1)]))]])
         featisCXYZpump=featisCXY.map(func,pumpup)
         RETURN,HASH(LIST("ID","Index","IndexPump"),LIST(attr,featisCXY,featisCXYZpump))
     ENDIF ELSE BEGIN
