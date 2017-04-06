@@ -124,14 +124,18 @@ FUNCTION ARRAY_INDICES_ROI_RS,Raster,Shp,ID,UPSAMPLING=upsampling,PUMPUP=pumpup
     
     ; Now remove the indices from the main object that are present in the subobjects=holes
     
-    ; erase empty:
-    NullidArray=luna.WHERE(-1)
-    IF N_ELEMENTS(NullidArray) EQ N_ELEMENTS(attr) THEN BEGIN
-        PRINT,"None of the objects contains any pixel. Please use finer raster"
-        RETALL
-    ENDIF
-    REMOVE,NullidArray,attr                               ; IDs
-    featisClean=luna.filter(Lambda(x:x[0] NE -1))       ; indices
+    ; erase empty objects
+    null_id_indices=luna.WHERE(-1)
+    IF N_ELEMENTS(null_id_indices) EQ N_ELEMENTS(attr) THEN MESSAGE,"None of the objects contains any pixel. Please use finer raster"
+    
+    ; Clean IDs
+    attr_l = LIST(attr,/EXTRACT)
+    ids_removed = attr_l.remove(null_id_indices)
+    IF TOTAL(ids_removed NE !NULL) NE 0 THEN PRINT,"Objects containing no pixels: "+(STRTRIM((ids_removed).ToArray(),2)).Join(', ')
+    attr = attr_l.ToArray()
+    
+    ; Clean indices
+    featisClean=luna.filter(Lambda(x:x[0] NE -1))
     
     featisCXY=featisClean.map(LAMBDA(x,pnx,pny:ARRAY_INDICES([pnx,pny],x,/DIMENSIONS)),pnx,pny)
     
