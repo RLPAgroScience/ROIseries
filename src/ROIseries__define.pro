@@ -47,7 +47,7 @@ PRO RoiSeries :: savetodb,step
         ENDIF ELSE BEGIN
             self.legacy=(self.legacy)+ORDEREDHASH(step,path)
         ENDELSE
-        (SCOPE_VARFETCH(step,/ENTER))=self.copy(/KEEP_ID)
+        (SCOPE_VARFETCH(step,/ENTER))=self.clone(/KEEP_ID)
         SAVE,FILENAME=path,(SCOPE_VARFETCH(step,/ENTER))
         temp=(size(temporary((SCOPE_VARFETCH(step,/ENTER)))))
     ENDELSE
@@ -72,7 +72,7 @@ FUNCTION RoiSeries::_overloadBracketsRightSide,isRange, sub
     
     IF isRange THEN print,"Ranges are not yet supported, use a list of keys instead"
     ; make a copy of the object and remove values that are not in the list sub1
-    x=copyheap(self)
+    x=COPY_HEAP_RS(self)
     x.data=x.data[sub]
     IF typename(x.class) EQ "HASH" THEN x.class=x.class[sub]
     RETURN,x
@@ -199,14 +199,14 @@ FUNCTION RoiSeries::DIMENSIONS
 END
 
 ; Copy the whole object
-FUNCTION RoiSeries::copy,KEEP_ID=keep_id
+FUNCTION RoiSeries::clone,KEEP_ID=keep_id
     COMPILE_OPT idl2, HIDDEN
     
     ; make sure that the id is replaced by "ID_systime(1)" if KEEP_ID was not set:
     IF KEYWORD_SET(KEEP_ID) THEN BEGIN
-        return,copyheap(self)
+        return,COPY_HEAP_RS(self)
     ENDIF ELSE BEGIN
-        x=copyheap(self)
+        x=COPY_HEAP_RS(self)
         IF STRMID(x.id,2,/REVERSE_OFFSET) EQ "_C_" THEN BEGIN
             x.id=STRMID(x.id,0,STRLEN(x.id)-21)+"_"+STRTRIM(STRING(systime(1),FORMAT='(D0)'),2)+"_C_"
             return,x
@@ -269,7 +269,7 @@ END
 FUNCTION RoiSeries :: GetClass, class
     COMPILE_OPT idl2, HIDDEN
     
-    selfC=copyheap(self)
+    selfC=COPY_HEAP_RS(self)
     keys=(selfC.class).where(class)
     selfC.data=(selfC.data)[keys]
     selfC.class=(selfC.class)[keys]
