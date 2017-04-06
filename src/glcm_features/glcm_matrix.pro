@@ -67,8 +67,8 @@ FUNCTION GLCM_MATRIX,img,dir
     COMPILE_OPT idl2, HIDDEN
     
     ; Input?
-    IF N_ELEMENTS(img) EQ 0 THEN RETURN,"please provide input array"
-    IF N_ELEMENTS(dir) EQ 0 THEN RETURN,"please provide input directions"
+    IF N_ELEMENTS(img) EQ 0 THEN MESSAGE,"please provide input array"
+    IF N_ELEMENTS(dir) EQ 0 THEN MESSAGE,"please provide input directions"
     
     ; Ouput:
     res_list = LIST()
