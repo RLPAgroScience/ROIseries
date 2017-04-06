@@ -72,7 +72,7 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
     IF N_ELEMENTS(glcm) EQ 0 THEN RETURN,"Please provide GLCM"
     IF N_ELEMENTS(feature_names) EQ 0 THEN RETURN,"Please provide at least one feature"
     IF TOTAL(FINITE(glcm)) LT 1 THEN RETURN,(REPLICATE(!Values.D_NAN ,N_ELEMENTS(feature_names))).ToList(/NO_COPY) ; Check if GLCM was successfully calculated if not (e.g. for 1D Array) return D_NAN
-    IF feature_names.HasValue(["MEAN","VAR","STD","COR"]) AND N_ELEMENTS(IMG) EQ 0 THEN RETURN,"To calculate 'MEAN','VAR','STD' or 'COR' the original array/image needs to be provided" 
+    IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) AND N_ELEMENTS(IMG) EQ 0 THEN RETURN,"To calculate 'MEAN','VAR','STD' or 'COR' the original array/image needs to be provided" 
     
     ; Precalculations for "Contrast Group"
     superset=[feature_names,["CON","DIS","HOM"]]
@@ -82,7 +82,7 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
     ENDIF
     
     ; Precalculations for "Descriptive Stats Group"
-    IF feature_names.HasValue(["MEAN","VAR","STD","COR"]) THEN BEGIN
+    IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) THEN BEGIN
       bins=MAX(img,/NAN)-MIN(img,/NAN)+1
       ind=REBIN(INDGEN(bins,START=MIN(img,/NAN)),bins,bins)
     ENDIF
