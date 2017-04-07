@@ -33,13 +33,12 @@ RS = RS.COOKIE_CUTTER(id,db,shp,id_col_name,rasterseries)
 
 ; ---------------------------------------------------------------------------------------------------
 ; 1: Multiple ROIseries_3D objects holding different Sentinel 2 bands
-
 id_nir = "NIR"
 db_nir = FILEPATH(id_nir,/TMP)
 NIR = ROIseries_3D()
 NIR.COOKIE_CUTTER(id_nir,db_nir,shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA="R[3]")
 NIR.TIME_FROM_FILENAMES(rasterseries,[15,4],[19,2],[21,2])
-NIR.unit = ["time","Distribution of NIR Values per object"]
+NIR.unit = LIST("time","Distribution of NIR Values per object")
 
 id_red = "RED"
 db_red = FILEPATH(id_red,/TMP)
@@ -52,7 +51,7 @@ db_blue = FILEPATH(id_blue,/TMP)
 BLUE = ROIseries_3D()
 BLUE.COOKIE_CUTTER(id_blue,db_blue,shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA="R[2]")
 BLUE.time = NIR.time
-
+BLUE.unit = LIST("time","Distribution of BLUE values per object")
 ; Plot the blue channel
 BLUE.BOXPLOT()
 
@@ -76,14 +75,14 @@ EVI = (NIR - RED)/(NIR + RED * C1 - BLUE * C2 + L) * G
 ; One exception is the time attribute which has to be the same for all objects anyway and is checked and handed over internally.
 EVI.id = "EVI"
 EVI.db = FILEPATH("EVI",/TMP)
-EVI.unit = ["time","Distribution of EVI Values per object"]
+EVI.unit = LIST("time","Distribution of EVI Values per object")
 EVI.boxplot()
 
 ; It is possible to use the objects to calculate any arbitrary indices like the NDVI
 NDVI = (NIR-RED)/(NIR+RED)
 NDVI.id = "NDVI"
 NDVI.db = FILEPATH("NDVI",/TMP)
-NDVI.unit = ["time","Distribution of NDVI Values per object"]
+NDVI.unit = LIST("time","Distribution of NDVI Values per object")
 NDVI.boxplot()
 
 ; -----------------------------------------------------------------------------------------------------------
@@ -91,7 +90,7 @@ NDVI.boxplot()
 EVI_2 = ROIseries_3D()
 EVI_2.COOKIE_CUTTER("EVI_2",FILEPATH("EVI_2",/TMP),shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA="(R[3] - R[0])/(R[3] + R[0] * 6 - R[2] * 7.5 + 1) * 2.5")
 EVI_2.time = NIR.time
-EVI_2.unit = ["time","Distribution of EVI Values per object"]
+EVI_2.unit = LIST("time","Distribution of EVI Values per object")
 EVI_2.boxplot()
 
 ; Conclusion:
