@@ -80,26 +80,9 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
 END
 
 ; saves the features per time step and roi to a csv.
-FUNCTION ROIseries_1D :: FeaturesToCSV,FEATURES,CSV,PREFIX=prefix
+FUNCTION ROIseries_1D :: features_to_csv,function_names,CSV_PATH=csv_path
     COMPILE_OPT idl2, HIDDEN
-    
-    IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
-    
-    data=self.data
-    data_0=data[((data.keys())[0])]
-    time=STRTRIM(self.time,2)
-    
-    ; compare time to last (temporal) dimension
-    IF N_ELEMENTS(time) NE (SIZE(data_0,/DIMENSIONS)) THEN RETURN,"length of time attribute and temporal array dimension differ"
-    
-    ; loop over time and data for each date
-    FOREACH c,INDGEN(N_ELEMENTS(time)) DO BEGIN
-        t=time[c]
-        dataCurrent=data.map(Lambda(x,count:REFORM(x[count])),c) 
-        dataCurrentPTR=ptr_new(dataCurrent)
-        csvCurrent=FILE_DIRNAME(csv)+"\"+FILE_BASENAME(CSV,".csv")+"_"+t+".csv"
-        FtoCSV_RS,FEATURES,csvCurrent,dataCurrentPTR,PREFIX=prefix+"_"+t+"_"
-    ENDFOREACH
+    RS1D_features_to_csv,self,function_names,CSV_PATH=csv_path
     RETURN,1
 END
 
