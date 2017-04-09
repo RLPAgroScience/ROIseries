@@ -135,14 +135,14 @@ PRO RS3D_features_to_csv,FEATURES,CSV,SelfData,PREFIX=prefix
             
             ELSE: BEGIN 
                 ; calculate percentiles in the else clause to allow differnt percentiles specified by the first two letters:
-                IF f EQ STRMID(f,0,2)+'Percentile' THEN BEGIN
-                    perc=FIX((STRMID(f,0,2)))*0.01
-                    temp=dat.map(LAMBDA(x,perc:cgpercentiles(x,percentiles=[perc])),perc)
+                IF f.StartsWith('PERCENTILE') THEN BEGIN
+                    perc = FLOAT((f.split('_'))[1])
+                    temp=dat.map(LAMBDA(x,perc:PERCENTILE_RS(x,perc)),perc)
                     OutList.add,temp.ToArray(/NO_COPY)
                     FeatureNames.add,f
                     print,f," calculated"
                 ENDIF ELSE BEGIN
-                    print,f," will not be calculated since it is not a vaild option"
+                    MESSAGE,f," will not be calculated since it is not a vaild option"
                 ENDELSE
                 
             ENDELSE

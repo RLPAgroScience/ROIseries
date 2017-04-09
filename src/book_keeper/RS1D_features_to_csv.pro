@@ -51,13 +51,22 @@ PRO RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     time = STRTRIM((self.time).ToArray(),2)
     FOREACH f,function_names DO BEGIN
         CASE f OF
-            'MEAN': result['MEAN'] = MEAN(values,DIMENSION=2,/NAN)
-            'STDDEV':result['STDDEV'] = STDDEV(values,DIMENSION=2,/NAN)
-            'MIN':result['MIN'] = MIN(x,DIMENSION=2,/NAN)
-            'MAX':result['MAX'] = MAX(x,DIMENSION=2,/NAN)
-            'TOTAL':result['TOTAL'] = TOTAL(x,DIMENSION=2,/NAN)
-            'MEDIAN':result['MEDIAN'] = MEDIAN(x,DIMENSION=2) ; NaN automatically treated as missing data in MEDIAN according to documentation
+            'MEAN': result[f] = MEAN(values,DIMENSION=2,/NAN)
+            'STDDEV':result[f] = STDDEV(values,DIMENSION=2,/NAN)
+            'MIN':result[f] = MIN(x,DIMENSION=2,/NAN)
+            'MAX':result[f] = MAX(x,DIMENSION=2,/NAN)
+            'TOTAL':result[f] = TOTAL(x,DIMENSION=2,/NAN)
+            'MEDIAN':result[f] = MEDIAN(x,DIMENSION=2) ; NaN automatically treated as missing data in MEDIAN according to documentation
             'RAW': FOR c=0,N_ELEMENTS(time)-1 DO result['RAW_'+time[c]] = values[*,c]
+            ELSE: BEGIN
+                IF f.StartsWith('PERCENTILE') THEN BEGIN
+                    perc = FLOAT((f.split('_'))[1])
+                    temp = ((self.data).values()).map(LAMBDA(x,perc:PERCENTILE_RS(x,perc)),perc)
+                    result[f]=temp.ToArray(/NO_COPY)
+                ENDIF ELSE BEGIN
+                    MESSAGE,f," will not be calculated since it is not a vaild option"
+                ENDELSE
+            ENDELSE
         ENDCASE
     ENDFOREACH
     
