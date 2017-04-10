@@ -2,6 +2,9 @@
 ROIseries
 ====================
 
+.. image:: data/info_graphics/ROIseries_video_thumbnail.png
+  :target: https://www.youtube.com/watch?v=eY81RgpSwz8
+
 Purpose
 ---------------
 ROIseries helps to discover usefull features in multitemporal remote sensing data for machine learning applications.
