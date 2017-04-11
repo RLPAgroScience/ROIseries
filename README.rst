@@ -11,6 +11,11 @@ ROIseries helps to discover usefull features in multitemporal remote sensing dat
 
 Installation
 ---------------
+1. Clone the ROIseries repository.
+2. Make sure that the data in ROIseries/data/ is pulled down using git LFS.
+3. Add the ROIseries folder to your IDL Paths in the IDL Workbench.
+4. DONE :)
+5. To get started and/or test if everything works, try out the examples in: ROIseries/docs/examples/
 
 Tutorials
 ---------------
