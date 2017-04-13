@@ -39,7 +39,7 @@
 ; :Author:
 ;     Niklas Keck ("niklas_keck'use at instead'gmx.de").replace("'use at instead'","@")
 ;-
-PRO RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
+FUNCTION RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     
     IF function_names.HasValue('RAW') AND N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Set time attribute to output RAW features per time step"
     IF N_ELEMENTS(csv_path) EQ 0 THEN csv_path = FILEPATH(self.id+"_features_"+(TIMESTAMP()).replace(":","-")+".csv",ROOT_DIR=self.db,SUBDIRECTORY=['features'])
@@ -74,4 +74,5 @@ PRO RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     
     result_structure = result.ToStruct()
     WRITE_CSV,csv_path,result_structure,header=self.id+"_"+(result.keys()).ToArray()
+    RETURN,csv_path
 END

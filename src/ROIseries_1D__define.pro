@@ -82,8 +82,8 @@ END
 ; saves the features per time step and roi to a csv.
 FUNCTION ROIseries_1D :: features_to_csv,function_names,CSV_PATH=csv_path
     COMPILE_OPT idl2, HIDDEN
-    RS1D_features_to_csv,self,function_names,CSV_PATH=csv_path
-    RETURN,1
+    path = RS1D_features_to_csv(self,function_names,CSV_PATH=csv_path)
+    RETURN,path
 END
 
 ;====================== OBJECT DEFINITION =====================================================================
