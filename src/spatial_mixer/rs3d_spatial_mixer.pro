@@ -49,7 +49,7 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
         *arr=RS_DATA[key]
         CASE TYPE OF
             'MEAN': result = time_indgen.map(LAMBDA(i,x:MEAN(((*x)[*,*,i]),/NAN)),arr)
-            'SD': result = time_indgen.map(LAMBDA(i,x:STDDEV(((*x)[*,*,i]),/NAN)),arr)
+            'STDDEV': result = time_indgen.map(LAMBDA(i,x:STDDEV(((*x)[*,*,i]),/NAN)),arr)
             'COUNT': result = REPLICATE(N_ELEMENTS(WHERE(FINITE((RS_DATA[key])[*,*,0]))),time_count)
             'MIN': result = time_indgen.map(LAMBDA(i,x:MIN(((*x)[*,*,i]),/NAN)),arr)
             'MAX': result = time_indgen.map(LAMBDA(i,x:MAX(((*x)[*,*,i]),/NAN)),arr)
@@ -67,7 +67,9 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
                       
                       ; GLCM features: [0]: GLCM_features returns a list with a single element if only one feature is calculated, so element needs to be exctracted.
                       result = time_indgen.map(LAMBDA(i,glcm,x,type:(GLCM_FEATURES((*glcm)[*,*,i],type,IMG=((*x)[*,*,i])))[0]),glcm_mat,arr,glcm_type)
-                  ENDIF
+                  ENDIF ELSE BEGIN
+                      MESSAGE,TYPE," will not be calculated since it is not a vaild option"
+                  ENDELSE
               ENDELSE
             
         ENDCASE

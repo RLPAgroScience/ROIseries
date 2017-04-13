@@ -41,8 +41,10 @@
 ;-
 PRO RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     
+    IF function_names.HasValue('RAW') AND N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Set time attribute to output RAW features per time step"
     IF N_ELEMENTS(csv_path) EQ 0 THEN csv_path = FILEPATH(self.id+"_features_"+(TIMESTAMP()).replace(":","-")+".csv",ROOT_DIR=self.db,SUBDIRECTORY=['features'])
     IF FILE_TEST(FILE_DIRNAME(csv_path),/DIRECTORY) EQ 0 THEN FILE_MKDIR,FILE_DIRNAME(csv_path)
+    
     print,"Features will be written to: "+csv_path
     
     result = ORDEREDHASH() 
