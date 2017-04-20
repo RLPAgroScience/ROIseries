@@ -219,7 +219,7 @@ END
 
 ;===================== ADD INFOS ============================================================================
 ; Store time information from filenames and position within those filenames. If /BASENAME is set position can be specified from start of filename (opposed to start of path)
-FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
+FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay,_REF_EXTRA = ex
     COMPILE_OPT idl2, HIDDEN
     
     ; Check input
@@ -227,7 +227,7 @@ FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay
 
     ; Generate a 1D array of dates    
     basenames = FILE_BASENAME(filenames)
-    self.time=LIST(GEN_DATE(basenames,posYear,posMonth,posDay),/EXTRACT)
+    self.time=LIST(GEN_DATE(basenames,posYear,posMonth,posDay,_STRICT_EXTRA=ex),/EXTRACT)
     self->savetodb,"TIME_FROM_FILENAMES"
     RETURN,1
 END

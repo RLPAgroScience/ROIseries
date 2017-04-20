@@ -50,7 +50,7 @@ FUNCTION RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     result = ORDEREDHASH() 
     result['ID'] = ((self.data).keys()).ToArray() 
     values = ((self.data).values()).ToArray()
-    time = STRTRIM((self.time).ToArray(),2)
+    time = STRING((self.time).ToArray(),FORMAT='(D0.10)')
     FOREACH f,function_names DO BEGIN
         CASE f OF
             'MEAN': result[f] = MEAN(values,DIMENSION=2,/NAN)
