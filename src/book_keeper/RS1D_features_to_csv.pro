@@ -44,6 +44,9 @@ FUNCTION RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     IF function_names.HasValue('RAW') AND N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Set time attribute to output RAW features per time step"
     IF N_ELEMENTS(csv_path) EQ 0 THEN csv_path = FILEPATH(self.id+"_features_"+(TIMESTAMP()).replace(":","-")+".csv",ROOT_DIR=self.db,SUBDIRECTORY=['features'])
     IF FILE_TEST(FILE_DIRNAME(csv_path),/DIRECTORY) EQ 0 THEN FILE_MKDIR,FILE_DIRNAME(csv_path)
+    legacy_array = (self.legacy.keys()).ToArray()
+    spatial_mixer = (legacy_array[WHERE(legacy_array.startswith("spatial_mixer"))])
+    spatial_mixer_type = (spatial_mixer.replace("spatial_mixer_",""))[0]
     
     print,"Features will be written to: "+csv_path
     
@@ -53,13 +56,13 @@ FUNCTION RS1D_FEATURES_TO_CSV,self,function_names,CSV_PATH=csv_path
     time = STRING((self.time).ToArray(),FORMAT='(D0.10)')
     FOREACH f,function_names DO BEGIN
         CASE f OF
-            'MEAN': result[f] = MEAN(values,DIMENSION=2,/NAN)
-            'STDDEV':result[f] = STDDEV(values,DIMENSION=2,/NAN)
-            'MIN':result[f] = MIN(x,DIMENSION=2,/NAN)
-            'MAX':result[f] = MAX(x,DIMENSION=2,/NAN)
-            'TOTAL':result[f] = TOTAL(x,DIMENSION=2,/NAN)
-            'MEDIAN':result[f] = MEDIAN(x,DIMENSION=2) ; NaN automatically treated as missing data in MEDIAN according to documentation
-            'RAW': FOR c=0,N_ELEMENTS(time)-1 DO result['RAW_'+time[c]] = values[*,c]
+            'MEAN': result[spatial_mixer_type+"_"+f] = MEAN(values,DIMENSION=2,/NAN)
+            'STDDEV':result[spatial_mixer_type+"_"+f] = STDDEV(values,DIMENSION=2,/NAN)
+            'MIN':result[spatial_mixer_type+"_"+f] = MIN(values,DIMENSION=2,/NAN)
+            'MAX':result[spatial_mixer_type+"_"+f] = MAX(values,DIMENSION=2,/NAN)
+            'TOTAL':result[spatial_mixer_type+"_"+f] = TOTAL(values,DIMENSION=2,/NAN)
+            'MEDIAN':result[spatial_mixer_type+"_"+f] = MEDIAN(values,DIMENSION=2) ; NaN automatically treated as missing data in MEDIAN according to documentation
+            'RAW': FOR c=0,N_ELEMENTS(time)-1 DO result[spatial_mixer_type+"_"+'RAW_'+time[c]] = values[*,c]
             ELSE: BEGIN
                 IF f.StartsWith('PERCENTILE') THEN BEGIN
                     perc = FLOAT((f.split('_'))[1])
