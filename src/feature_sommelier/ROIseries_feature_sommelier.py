@@ -25,6 +25,9 @@ import matplotlib.pyplot as plt
 import copy as cp
 import seaborn as sns
 import itertools
+from astropy.time import Time
+import tempfile
+import datetime
 
 from imblearn.over_sampling import (SMOTE,
                                     RandomOverSampler)
@@ -107,6 +110,63 @@ class ROIseries_feature_sommelier(object):
         result["G"] = (result["true_negative_rate"] * result["recall"])**0.5
         return result
     
+    @staticmethod
+    def read_features_and_groundtruth(features_csv,scene_properties_csv):
+        #----------------------------------------------------------
+        #   Read features output from ROIseries
+        df = [pd.read_csv(i, index_col = 0) for i in features_csv]
+        df = pd.concat(df,axis=1)
+        
+        # transpose the features to:
+        # -> use the time specified in second part of the the column name in a column
+        # -> use the dimensional history in first part of colum name in a colum (e. g. spatial mean, temporal standard deviation)
+        df_trans = pd.DataFrame.transpose(df)
+        id_variables = ['dimensional_history','time']
+        df_trans_infos = (df_trans.index).str.rsplit("_",1)
+        df_trans_infos_df = pd.DataFrame(df_trans_infos.tolist())
+        df_trans_infos_df.columns = id_variables
+        df_trans_infos_df['time']=pd.to_numeric(df_trans_infos_df['time']) 
+        df_trans_infos_df.index = df_trans.index
+        temp=df_trans.join(df_trans_infos_df)
+        long_format = pd.melt(temp,id_vars=id_variables)
+        long_format=long_format.rename(columns ={"variable":"id"})
+        long_format["id_time"]=[str(i)+"_"+"{:.10f}".format(t) for i,t in zip((long_format["id"]).tolist(),(long_format["time"]).tolist())]
+        long_format.drop(["time","id"],axis=1,inplace=True)
+        
+        #  Change format to wide format to have rows X columns = samples X features order
+        wide_format=pd.pivot_table(long_format,columns='dimensional_history',index="id_time",values="value")
+        temp = [(i.split("_")) for i in wide_format.index]
+        wide_format["time"]= [float(i[1]) for i in temp]
+        wide_format["id"] = [i[0] for i in temp] 
+        
+        
+        #----------------------------------------------------------
+        #   Read ground truth
+        scene_properties = pd.read_csv(scene_properties_csv)
+        scene_properties.drop("contains_data",axis=1,inplace=True)
+        a=((scene_properties['filename'])).str.split("_")
+        a_df = pd.DataFrame(a)
+        b = (a_df['filename']).apply(pd.Series)
+        time_datetime=[datetime.datetime.strptime(i,"%Y%m%dT%H%M%S") for i in b[3]]
+        time_astropy = [Time(i,format="datetime") for i in time_datetime]
+        scene_properties["time_julian"]=[i.jd for i in time_astropy]
+        scene_properties.drop("filename",axis=1,inplace=True)
+        
+        # convert to integer and round to make join possible
+        significant_digits = 6
+        scene_properties["time_julian"]=[int(10**significant_digits *i) for i in scene_properties["time_julian"]]
+        wide_format["time"]=[int(10**significant_digits *i) for i in wide_format["time"]]
+        
+        #----------------------------------------------------------
+        #  Join ground truth to features and write result to disc
+        result = pd.merge(wide_format,scene_properties,how='left',left_on="time",right_on="time_julian",sort=False)
+        result.index=list(zip(result["id"],(result["time"])*(10**-significant_digits)))
+        result.drop(["time","time_julian"],axis=1,inplace=True)
+        
+        outcsv = tempfile.gettempdir()+"\\temporary.csv"
+        result.to_csv(outcsv)
+        return(outcsv)
+        
     def __init__(self, csv, class_column, strata_column, positive_classname):
         # read in data
         df = pd.read_csv(csv, index_col = 0)
