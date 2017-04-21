@@ -36,7 +36,7 @@ NDVI_3D.XVOLUME,4,/REVERSE
 ; Compare variation of lightness in the 3D plot with the numeric variantion in 2D:
 ; => The time is plottet along the vertical axis in the 3D plot.
 NDVI_1D_MEAN = NDVI_3D.SPATIAL_MIXER("MEAN")
-NDVI_1D_MEAN.unit = LIST("time","Standarddeviation of NDVI per object")
+NDVI_1D_MEAN.unit = LIST("time","Mean of NDVI per object")
 NDVI_1D_MEAN.plot(ID = 4)
 
 ; Calculate the GLCM contrast in 45 degrees
