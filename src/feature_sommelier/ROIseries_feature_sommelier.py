@@ -235,17 +235,12 @@ class ROIseries_feature_sommelier(object):
         
     def RF_cv_by_strata(self):
         """ Train on own data, test on other data """
-        # set up randomForest
         rf = RandomForestClassifier(random_state = self.ran_stat, n_estimators = self.n_trees, n_jobs=self.n_jobs) 
-        
-        # REPLACE all_all with self!
-        strata = set(all_all.strata) 
-        #strata_indices = [np.where(all_all.strata == s) for s in strata]
-        
+        strata = set(self.strata) 
         res_dict = {}
         for i in itertools.permutations(strata,r=2):
-            o1 = all_all.select_strata(i[0])
-            o2 = all_all.select_strata(i[1])
+            o1 = self.select_strata(i[0])
+            o2 = self.select_strata(i[1])
             rf.fit(o1.X,o1.y)
             y_probability = rf.predict_proba(o2.X)
             y_predicted = rf.predict(o2.X)
