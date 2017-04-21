@@ -121,7 +121,6 @@ FUNCTION RoiSeries::_overloadPlus,left,right
     COMPILE_OPT idl2, HIDDEN
     
     ; Check preconditions and return result
-    print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_CHECK_ARITHMETIC_COMPATIBILITY(left,right)
@@ -139,7 +138,6 @@ FUNCTION RoiSeries::_overloadMinus ,left,right
     COMPILE_OPT idl2, HIDDEN
     
     ; Check preconditions and return result
-    print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_CHECK_ARITHMETIC_COMPATIBILITY(left,right)
@@ -157,7 +155,6 @@ FUNCTION RoiSeries::_overloadAsterisk,left,right
     COMPILE_OPT idl2, HIDDEN
     
     ; Check preconditions and return result
-    print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_check_arithmetic_compatibility(left,right)
@@ -175,7 +172,6 @@ FUNCTION RoiSeries::_overloadSlash ,left,right
     COMPILE_OPT idl2, HIDDEN
     
     ; Check preconditions and return result
-    print,"ATTENTION BETA: this method needs some testing"
     result=OBJ_NEW(TYPENAME(left))
     IF ISA(right,'ROISERIES') THEN BEGIN
         test=RS_check_arithmetic_compatibility(left,right)
