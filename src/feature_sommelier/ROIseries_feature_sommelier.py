@@ -167,15 +167,18 @@ class ROIseries_feature_sommelier(object):
         result.to_csv(outcsv)
         return(outcsv)
         
-    def __init__(self, csv, class_column, strata_column, positive_classname):
+    def __init__(self, csv, class_column, strata_column, positive_classname,drop_columns = []):
         # read in data
         df = pd.read_csv(csv, index_col = 0)
         self.y = df[class_column]
         self.strata = df[strata_column]
-        df_reduced = df.drop([class_column,strata_column,'X.y'],axis = 1)
-        self.id = df_reduced.index
-        self.feature_names = df_reduced.columns
-        self.X = df_reduced.values
+        
+        drop_columns.extend([class_column, strata_column])
+        df.drop(drop_columns,axis=1, inplace=1)
+        
+        self.id = df.index
+        self.feature_names = df.columns
+        self.X = df.values
         self.positive = positive_classname
         
     def impute_missing(self):       
