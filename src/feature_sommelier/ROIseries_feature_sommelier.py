@@ -428,3 +428,15 @@ class ROIseries_feature_sommelier(object):
                     plt.show() 
             else:
                 return pd.DataFrame({"precision":precision2, "recall":recall2})
+    
+    def plot_performance(self,mean=True,path=None,get_data=False):
+        performance_df=pd.DataFrame(self.performance_measures)
+        if mean == True:
+            performance_df = performance_df.mean()
+        else:
+            pass
+        
+        if get_data == True:
+            return performance_df
+        else:
+            performance_df.plot(kind="bar")
