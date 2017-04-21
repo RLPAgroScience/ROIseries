@@ -19,7 +19,18 @@ Installation
 
 Tutorials
 ---------------
-Have a look at the docs/examples folder.
+Have a look at the docs/examples folder. It contains tutorials and Jupyter Notebooks demonstrating the tutorials e. g.:
+
+- **rs_vegetation_indices**: VegetationIndices_
+- **rs_dimensional_juggling**: DimensionalJuggling_
+- **rs_wine_tasting**: 
+	- **part_1**: WineTasting1_
+	- **part_2**: WineTasting2_
+
+.. _VegetationIndices: docs/examples/rs_vegetation_indices.ipynb
+.. _DimensionalJuggling: docs/examples/rs_dimensional_juggling.ipynb
+.. _WineTasting1: docs/examples/rs_wine_tasting_part_1.ipynb
+.. _WineTasting2: docs/examples/rs_wine_tasting_part_2.ipynb
 
 Structure
 ----------------
