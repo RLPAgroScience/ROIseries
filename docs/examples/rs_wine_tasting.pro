@@ -41,15 +41,14 @@ rasterseries = ref + "rasters\"+filenames_csv[cloudy_knowledge_indices]
 
 ; Instantiate ROIseries_3D-objects for individual bands and NDVI
 ; Calculate MEAN, STDDEV, MIN, MAX for each image_object for each time step.
-ids = LIST("R","G","B","NIR","NDVI")
 indexer_formula = LIST("R[0]","R[1]","R[2]","R[3]","(R[3]-R[0])/(R[3]+R[0])")
-bands = LIST()
+bands = LIST("R","G","B","NIR","NDVI")
 csv_written = LIST()
-FOR i=0,4 DO BEGIN &$
+FOR i=0,N_ELEMENTS(bands)-1 DO BEGIN &$
     print,"==================================================================" &$
     print,i &$
     current_object_3D = ROIseries_3D() &$
-    temp = current_object_3D.COOKIE_CUTTER(ids[i],FILEPATH(ids[i]),shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA=indexer_formula[i]) &$
+    temp = current_object_3D.COOKIE_CUTTER(bands[i],FILEPATH(bands[i]),shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA=indexer_formula[i]) &$
     temp = current_object_3D.TIME_FROM_FILENAMES(rasterseries,[15,4],[19,2],[21,2], POSHOUR=[24,2],POSMINUTE=[26,2],POSSECOND=[28,2]) &$
     current_object_1D = current_object_3D.SPATIAL_MIXER("MEAN") &$
     csv_written.add, current_object_1D.FEATURES_TO_CSV(['RAW']) &$
