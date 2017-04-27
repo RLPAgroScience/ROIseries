@@ -63,12 +63,13 @@
 ; :Author:
 ;     Niklas Keck ("niklas_keck'use at instead'gmx.de").replace("'use at instead'","@"))
 ;-
-FUNCTION GLCM_MATRIX,img,dir
+FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
     COMPILE_OPT idl2, HIDDEN
     
     ; Input?
     IF N_ELEMENTS(img) EQ 0 THEN MESSAGE,"please provide input array"
     IF N_ELEMENTS(dir) EQ 0 THEN MESSAGE,"please provide input directions"
+    IF N_ELEMENTS(NORMALIZE_RS_NEW_MIN_MAX) NE 0 THEN img = NORMALIZE_RS(img,normalize_rs_new_min_max)
     
     ; Ouput:
     res_list = LIST()
