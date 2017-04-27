@@ -112,7 +112,7 @@ PRO RS3D_features_to_csv,FEATURES,CSV,SelfData,PREFIX=prefix
                 featureNames.add,"glcm_"+["con_0","con_45","con_90","con_135","dis_0","dis_45","dis_90","dis_135","hom_0","hom_45","hom_90","hom_135","asm_0","asm_45","asm_90","asm_135","ene_0","ene_45","ene_90","ene_135","max_0","max_45","max_90","max_135","ent_0","ent_45","ent_90","ent_135","mean_0","mean_45","mean_90","mean_135","var_0","var_45","var_90","var_135","std_0","std_45","std_90","std_135","cor_0","cor_45","cor_90","cor_135"],/EXTRACT
                 
                 ;oritinal copied to delete_2.pro
-                GLCM=dat.map(LAMBDA(x:(glcm_matrix(x,[0,45,90,135])).values()))
+                GLCM=dat.map(LAMBDA(x:(glcm_matrix(x,[0,45,90,135],NORMALIZE_RS_NEW_MIN_MAX=[0,255])).values()))
                 print,"GLCM base calculated"
                 n=N_ELEMENTS(dat)
                 feat_ptr=ptr_new(/ALLOCATE_HEAP)

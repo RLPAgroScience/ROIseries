@@ -63,7 +63,7 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
                       ; For GLCM matrix: Scale values to 0-255 while pertaining nan values
                       *arr = BYTSCL(*arr,/NAN)*(*arr/*arr)
                       glcm_mat = PTR_NEW(/ALLOCATE_HEAP)
-                      *glcm_mat = time_indgen.map(LAMBDA(i,x,d:GLCM_MATRIX(((*x)[*,*,i]),d)),arr,direction)
+                      *glcm_mat = time_indgen.map(LAMBDA(i,x,d:GLCM_MATRIX(((*x)[*,*,i]),d,NORMALIZE_RS_NEW_MIN_MAX=[0,255])),arr,direction)
                       
                       ; GLCM features: [0]: GLCM_features returns a list with a single element if only one feature is calculated, so element needs to be exctracted.
                       result = time_indgen.map(LAMBDA(i,glcm,x,type:(GLCM_FEATURES((*glcm)[*,*,i],type,IMG=((*x)[*,*,i])))[0]),glcm_mat,arr,glcm_type)
