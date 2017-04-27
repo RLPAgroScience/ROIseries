@@ -75,7 +75,7 @@ FUNCTION ROIseries_3D :: features_to_csv,FEATURES,CSV,PREFIX=prefix
     data=self.data
     data_0=data[((data.keys())[0])]
     IF SIZE(data_0,/N_DIMENSIONS) EQ 3 THEN BEGIN ; check if temporal data dimension is still present
-        time=STRTRIM(self.time,2)
+        time=STRTRIM((self.time).ToArray(),2)
         ; compare time to last (temporal) dimension
         IF N_ELEMENTS(time) NE (SIZE(data_0,/DIMENSIONS))[2] THEN RETURN,"length of time attribute and temporal array dimension differ"
         
