@@ -217,9 +217,10 @@ PRO RS1D_plot,RS_1D_self,ID=id,FORMAT=format,COLORTABLE_NB=colortable_NB,PATH=pa
             l3=LEGEND(TARGET=legend_ref,POSITION=[0.2,0.2])
         ENDIF
         ;-------------------------------------------------------------------------------------------------
-        w=GetWindows(NAMES=winNames,/CURRENT)
-        IF N_ELEMENTS(path) NE 0 THEN w.save,path+RS_1D_self.id+"_"+STRTRIM(id,2)+".png"
-        IF buffer EQ 1 THEN w.Close
-        
+        IF N_ELEMENTS(ID) GT 1 THEN BEGIN
+            w=GetWindows(NAMES=winNames,/CURRENT)
+            IF N_ELEMENTS(path) NE 0 THEN w.save,path+RS_1D_self.id+"_"+STRTRIM(id,2)+".png"
+            IF buffer EQ 1 THEN w.Close    
+        ENDIF
     ENDFOREACH
 END
