@@ -357,7 +357,7 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
                ;
                ;  END
   
-               ELSE: FOREACH ROI,(self.data).keys() DO (self.data)[ROI]=(MovingStats((self.data)[ROI],N))[STRLOWCASE(TYPE)]
+               ELSE: FOREACH ROI,(self.data).keys() DO (self.data)[ROI]=(MOVING_STATS_RS((self.data)[ROI],N))[STRLOWCASE(TYPE)]
     ENDCASE
     
     ; update time property
