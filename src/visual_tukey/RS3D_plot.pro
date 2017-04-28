@@ -68,7 +68,7 @@ PRO RS3D_plot,self,ID=id,PERCENT_TO_PLOT=percent_to_plot,NONTEMPORALUNIT=nontemp
         IF N_ELEMENTS(self.class) NE 0 THEN class=(self.class)[id_current] ELSE class="unclassified"
         plot_data_current=plot_data[id_current]
         
-        temp=PLOT(self.time,plot_data_current[0,*],":2+",$
+        temp=PLOT((self.time).ToArray(),plot_data_current[0,*],":2+",$
                 TITLE="'"+id_current+"'"+" of object [id="+STRTRIM(id_current,2)+", "+"class="+class+"]",$
                 xtitle=((self.unit)[0]), $
                 ytitle=((self.unit)[1]),XTICKUNITS=[XTICK],BUFFER=BUF)
@@ -76,7 +76,7 @@ PRO RS3D_plot,self,ID=id,PERCENT_TO_PLOT=percent_to_plot,NONTEMPORALUNIT=nontemp
         n = (SIZE(plot_data_current))[1]-1
         step =  FLOOR(100/PERCENT_TO_PLOT) 
         IF step LT n THEN BEGIN
-            FOR i=LONG64(1),n,step DO temp=PLOT(self.time,plot_data_current[i,*],":2+",XTICKUNITS=[XTICK],/OVERPLOT,BUFFER=BUF)
+            FOR i=LONG64(1),n,step DO temp=PLOT((self.time).ToArray(),plot_data_current[i,*],":2+",XTICKUNITS=[XTICK],/OVERPLOT,BUFFER=BUF)
         ENDIF
         
         IF N_ELEMENTS(ID) GT 1 THEN BEGIN

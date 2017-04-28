@@ -279,8 +279,8 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
     COMPILE_OPT idl2, HIDDEN
     
     ; 1. Check if the time series is equally distributed (all temporal differences are the same)
-    IF self.time EQ !NULL THEN MESSAGE,"The time property has to be set first!"
-    temp_diff=((TS_DIFF(self.time,1))[0:-2])
+    IF N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"The time property has to be set first!"
+    temp_diff=((TS_DIFF((self.time).ToArray(),1))[0:-2])
     x=temp_diff[sort(temp_diff)]
     IF x[0] NE x[-1] THEN BEGIN &$
         PRINT,"The time property has unequally distributed time differences. Have a look at the returned numbers."

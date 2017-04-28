@@ -47,7 +47,7 @@ FUNCTION RS_check_arithmetic_compatibility,self,other_object
     n=N_ELEMENTS(s.values())
     IF TOTAL(s.values() EQ o.values()) NE n THEN MESSAGE,"Dimensions within objects differ"
     IF TOTAL(s.keys() EQ o.keys()) NE n THEN MESSAGE,"Some keys differ"
-    IF (TOTAL(self.time EQ other_object.time) NE N_ELEMENTS(self.time)) && (self.time NE !NULL && other_object.time NE !NULL) THEN MESSAGE,"time variable differs"
+    IF (TOTAL(self.time EQ other_object.time) NE N_ELEMENTS(self.time)) THEN MESSAGE,"time variable differs"
     
     RETURN,1
 END

@@ -67,11 +67,11 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
     COMPILE_OPT idl2, HIDDEN
     
     ; Get Old (SELF) and new(OTHER) time Values
-    self.data=RS_interpolate_to(self.time,other_object.time,self.data)
+    self.data=RS_interpolate_to((self.time).ToArray(),(other_object.time).ToArray(),self.data)
     
     ; store the resulting times:
     ; Generated keys:
-    CALDAT,LONG(other_object.time),Months,Days,Years
+    CALDAT,LONG((other_object.time).ToArray()),Months,Days,Years
     baseName=self.id+"->InterpolatedTO("+other_object.id+")"
     names=[] ;
     FOR I=0,(N_ELEMENTS(Years)-1) DO names=[names,baseName+"_"+STRTRIM(Years[I],2)+STRTRIM(Months[I],2)+STRTRIM(Days[I],2)]
