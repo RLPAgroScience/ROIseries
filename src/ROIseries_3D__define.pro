@@ -27,6 +27,7 @@
 ; Extract 3D image-objects
 FUNCTION ROIseries_3D :: COOKIE_CUTTER,id,db,SHAPEFILE, ID_COLNAME , RASTER, SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,NO_SAVE=no_save,UPSAMPLING=upsampling
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check inputs
     testv=[N_ELEMENTS(id),N_ELEMENTS(db),N_ELEMENTS(SHAPEFILE) NE 0,N_ELEMENTS(ID_COLNAME)NE 0,N_ELEMENTS(RASTER)NE 0]
@@ -51,6 +52,7 @@ END
 ; Reduce spatial dimension to convert 3D to 1D object:
 FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
 
     RS1D = ROIseries_1D() 
     RS1D.parents = self.parents
@@ -69,6 +71,7 @@ END
 ; calculate different attributes and save them as CSV
 FUNCTION ROIseries_3D :: features_to_csv,FEATURES,CSV,PREFIX=prefix
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     IF N_ELEMENTS(PREFIX) EQ 0 THEN PREFIX=""
     
@@ -96,6 +99,7 @@ END
 ; Plot functionality
 FUNCTION ROIseries_3D :: plot,_EXTRA = e ; TO_FILE=to_file,PATH=path
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check input
     IF N_ELEMENTS(self.time) EQ 0 THEN RETURN,"Please add time attribute first"
@@ -112,6 +116,7 @@ END
 ; Plot functionality
 FUNCTION ROIseries_3D :: boxplot,_EXTRA = e ; TO_FILE=to_file,PATH=path
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check input
     IF N_ELEMENTS(self.time) EQ 0 THEN RETURN,"Please add time attribute first"
@@ -127,6 +132,7 @@ END
 
 PRO ROIseries_3D :: XVOLUME,ID,REVERSE=reverse
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     data = (self.data)[ID]
     

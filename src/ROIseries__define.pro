@@ -31,12 +31,14 @@ FUNCTION RoiSeries :: init
     self.class=HASH()
     self.no_save = 0
     self.unit=LIST()
+    self.on_error = 1
     RETURN,1
 END
 
 ; Save object to db
 PRO RoiSeries :: savetodb,step
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     IF self.no_save THEN BEGIN
         path=!Values.F_NAN
@@ -56,6 +58,7 @@ END
 ; Restore object to specified "step" from DB folder
 FUNCTION RoiSeries :: reset,step
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Test if save was enabled.
     ; Not testing on self.no_save makes it possible to save only certain steps:
@@ -69,6 +72,7 @@ END
 ; [] Overloading
 FUNCTION RoiSeries::_overloadBracketsRightSide,isRange, sub
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     IF isRange THEN print,"Ranges are not yet supported, use a list of keys instead"
     ; make a copy of the object and remove values that are not in the list sub1
@@ -81,6 +85,7 @@ END
 ; Get attributes out of Object: Thanks a lot for the inspiration!! (https://www.idlcoyote.com/tips/getproperty.html)
 PRO RoiSeries::GetProperty,_ref_extra=extra
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
 
     Call_Procedure , Obj_Class(self)+'__define', struct
     index=(WHERE(Tag_Names(struct) EQ ((STRUPCASE(extra))[0]),count))[0]
@@ -98,6 +103,7 @@ END
 
 PRO RoiSeries::SetProperty,_extra=extra
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     Call_Procedure , Obj_Class(self)+'__define', struct
     name=((STRUPCASE(tag_names(extra)))[0])
@@ -119,6 +125,7 @@ END
 ; +
 FUNCTION RoiSeries::_overloadPlus,left,right
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check preconditions and return result
     result=OBJ_NEW(TYPENAME(left))
@@ -136,6 +143,7 @@ END
 ; -
 FUNCTION RoiSeries::_overloadMinus ,left,right
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check preconditions and return result
     result=OBJ_NEW(TYPENAME(left))
@@ -153,6 +161,7 @@ END
 ; *
 FUNCTION RoiSeries::_overloadAsterisk,left,right
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check preconditions and return result
     result=OBJ_NEW(TYPENAME(left))
@@ -170,6 +179,7 @@ END
 ; /
 FUNCTION RoiSeries::_overloadSlash ,left,right
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check preconditions and return result
     result=OBJ_NEW(TYPENAME(left))
@@ -190,6 +200,7 @@ END
 ; Returns a hash with key:Dimensions
 FUNCTION RoiSeries::DIMENSIONS
   COMPILE_OPT idl2, HIDDEN
+  ON_ERROR,self.on_error
   
   RETURN,((self.data).map(LAMBDA(x:[size(x,/DIMENSIONS)])))
 END
@@ -197,6 +208,7 @@ END
 ; Copy the whole object
 FUNCTION RoiSeries::clone,KEEP_ID=keep_id
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; make sure that the id is replaced by "ID_systime(1)" if KEEP_ID was not set:
     IF KEYWORD_SET(KEEP_ID) THEN BEGIN
@@ -217,6 +229,7 @@ END
 ; Store time information from filenames and position within those filenames. If /BASENAME is set position can be specified from start of filename (opposed to start of path)
 FUNCTION RoiSeries :: TIME_FROM_FILENAMES,Filenames,posYear,posMonth,posDay,_REF_EXTRA = ex
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Check input
     IF TYPENAME(Filenames) NE "STRING" THEN RETURN,"Please provide filenames"
@@ -232,6 +245,7 @@ END
 ; Store groundtruth information in object
 FUNCTION RoiSeries :: GROUNDTRUTH_FROM_CSV,csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; get groundtruths
     self.groundtruth=GROUNDTRUTH_FROM_CSV(csv,types,ID_Colname,posYear,posMonth,posDay,AGGREGATE=aggregate)
@@ -243,6 +257,7 @@ END
 ; Store class information for each roi in object
 FUNCTION RoiSeries :: classify,shp,ID_Colname,Class_Colname
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     IF N_ELEMENTS(SHP) EQ 0 THEN RETURN,"Please provide path to shapefile"
     IF N_ELEMENTS(ID_Colname) EQ 0 THEN RETURN,"Please provide name of id column"
@@ -264,6 +279,7 @@ END
 ; Extract certain classes out of object
 FUNCTION RoiSeries :: GetClass, class
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     selfC=COPY_HEAP_RS(self)
     keys=(selfC.class).where(class)
@@ -277,6 +293,7 @@ END
 ; Filter Data
 FUNCTION RoiSeries::temporal_filter,TYPE,N
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; 1. Check if the time series is equally distributed (all temporal differences are the same)
     IF N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"The time property has to be set first!"
@@ -363,5 +380,6 @@ PRO RoiSeries__define,void
         class: HASH(), $ ; to be able to classify rois
         no_save:BOOLEAN(0), $ ; enable saving by default
         unit:LIST(),$
+        on_error:1,$
     INHERITS IDL_OBJECT} ; to overload IDL get properties methods
 END

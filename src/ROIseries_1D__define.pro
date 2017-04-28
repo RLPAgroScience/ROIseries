@@ -22,6 +22,7 @@
 ; Plot the RoiSeries
 FUNCTION ROIseries_1D :: plot,_REF_EXTRA=e;ID=id,FORMAT=format,PATH=path,GROUNDTRUTH_TYPES=groundtruth_types,OTHEROBJECTS=otherobjects,MIX=mix,CLASS=class,TITLE=title
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     IF N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Please add time attribute first"
     IF N_ELEMENTS(self.unit) EQ 0 THEN MESSAGE,"Plaase add [x,y] unit attribute first"
@@ -47,6 +48,7 @@ END
 ; for formulas check: http://en.wikipedia.org/wiki/Normalization_%28statistics%29
 FUNCTION ROIseries_1D :: normalize  
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     keys=((self.data).keys()).ToArray()
     dat=((self.data).values()).ToArray()
@@ -65,6 +67,7 @@ END
 ; Interpolate one RS Object to another to have the same time intervalls
 PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the current object onto the other one
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
     
     ; Get Old (SELF) and new(OTHER) time Values
     self.data=RS_interpolate_to((self.time).ToArray(),(other_object.time).ToArray(),self.data)
@@ -82,6 +85,8 @@ END
 ; saves the features per time step and roi to a csv.
 FUNCTION ROIseries_1D :: features_to_csv,function_names,CSV_PATH=csv_path
     COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
+    
     path = RS1D_features_to_csv(self,function_names,CSV_PATH=csv_path)
     RETURN,path
 END
