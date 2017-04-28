@@ -50,13 +50,5 @@
 ;-
 FUNCTION REPCON_RS,arr,fac,Dimension
     COMPILE_OPT idl2, HIDDEN
-    
-    IF N_ELEMENTS(arr) NE 2 THEN BEGIN
-        RETURN,(LIST(arr,LENGTH=fac)).ToArray(DIMENSION=Dimension)
-    ENDIF ELSE BEGIN
-        temp = "I really should have documented why arrays of length 2 are treated differently!" + $ 
-        " Probably has something to do with its use in array_indices_roi_rs." + $
-        " So when this message appears: Please check the circumstances and solve the mystery."
-        MESSAGE, temp
-    ENDELSE
+    RETURN,(LIST(arr,LENGTH=fac)).ToArray(DIMENSION=Dimension)
 END
