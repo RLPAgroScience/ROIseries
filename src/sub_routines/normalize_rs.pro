@@ -44,14 +44,16 @@
 FUNCTION NORMALIZE_RS,array,new_min_max
     COMPILE_OPT idl2, HIDDEN
     
-    IF N_ELEMENTS(array) EQ 0 THEN MESSAGE, "Please provide 'array'"
-    array = DOUBLE(array)
+    array_in = array
+    
+    IF N_ELEMENTS(array_in) EQ 0 THEN MESSAGE, "Please provide 'array'"
+    array_in = DOUBLE(array_in)
     IF N_ELEMENTS(new_min_max) NE 2 THEN MESSAGE,"Please provide 'new_min_max' array, form: [new_min,new_max]"
     
     new_range = ABS(new_min_max[0] - new_min_max[1])
-    old_minimum = MIN(array,/NAN,MAX=old_maximum)
+    old_minimum = MIN(array_in,/NAN,MAX=old_maximum)
     
-    zero_to_one = (array-old_minimum)/(old_maximum-old_minimum)
+    zero_to_one = (array_in-old_minimum)/(old_maximum-old_minimum)
     zero_to_range = zero_to_one*new_range
     result =  zero_to_range + new_min_max[0] ; if new_minimum is negative it will be subtracted
     

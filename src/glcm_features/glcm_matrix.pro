@@ -66,16 +66,18 @@
 FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
     COMPILE_OPT idl2, HIDDEN
     
+    img_in = img
+    
     ; Input?
-    IF N_ELEMENTS(img) EQ 0 THEN MESSAGE,"please provide input array"
+    IF N_ELEMENTS(img_in) EQ 0 THEN MESSAGE,"please provide input array"
     IF N_ELEMENTS(dir) EQ 0 THEN MESSAGE,"please provide input directions"
-    IF N_ELEMENTS(NORMALIZE_RS_NEW_MIN_MAX) NE 0 THEN img = NORMALIZE_RS(img,normalize_rs_new_min_max)
+    IF N_ELEMENTS(NORMALIZE_RS_NEW_MIN_MAX) NE 0 THEN img_in = NORMALIZE_RS(img_in,normalize_rs_new_min_max)
     
     ; Ouput:
     res_list = LIST()
     
     ; Check the number of pixels in the two dimensions
-    dim = SIZE(img,/DIMENSIONS)
+    dim = SIZE(img_in,/DIMENSIONS)
     IF N_ELEMENTS(dim) EQ 1 THEN BEGIN
         cas = 1
     ENDIF ELSE BEGIN
@@ -98,8 +100,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                 IF cas EQ 1 || cas EQ 3 THEN BEGIN 
                     res_list.Add,!Values.D_NAN
                 ENDIF ELSE BEGIN
-                    img_s1 = (shift(img,[-1,0]))[0:-2,*]
-                    img_c=img[0:-2,*]
+                    img_s1 = (shift(img_in,[-1,0]))[0:-2,*]
+                    img_c=img_in[0:-2,*]
                     h2d=HIST_2D_NAN(img_s1,img_c) + HIST_2D_NAN(img_c,img_s1) 
                     res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
                 ENDELSE
@@ -110,8 +112,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                 IF cas EQ 1 || cas EQ 4 THEN BEGIN
                     res_list.Add,!Values.D_NaN
                 ENDIF ELSE BEGIN
-                    img_s1 = (shift(img,[0,-1]))[*,0:-2]
-                    img_c = img[*,0:-2]
+                    img_s1 = (shift(img_in,[0,-1]))[*,0:-2]
+                    img_c = img_in[*,0:-2]
                     h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
                     res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
                 ENDELSE 
@@ -122,8 +124,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                IF cas NE 2 THEN BEGIN   
                    res_list.Add,!Values.D_NaN
                ENDIF ELSE BEGIN
-                   img_s1 = (shift(img,[1,-1]))[1:*,0:-2]
-                   img_c = img[1:*,0:-2]
+                   img_s1 = (shift(img_in,[1,-1]))[1:*,0:-2]
+                   img_c = img_in[1:*,0:-2]
                    h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
                    res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
                ENDELSE
@@ -134,8 +136,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                IF cas NE 2 THEN BEGIN
                  res_list.Add,!Values.D_NaN
                ENDIF ELSE BEGIN
-                 img_s1 = (shift(img,[-1,-1]))[0:-2,0:-2]
-                 img_c = img[0:-2,0:-2] ; bug corrected. Used to be: img[1:*,0:-2] 
+                 img_s1 = (shift(img_in,[-1,-1]))[0:-2,0:-2]
+                 img_c = img_in[0:-2,0:-2] ; bug corrected. Used to be: img_in[1:*,0:-2] 
                  h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
                  res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
                ENDELSE
