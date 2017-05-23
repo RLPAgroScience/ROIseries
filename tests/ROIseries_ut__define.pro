@@ -106,11 +106,20 @@ FUNCTION ROIseries_ut :: TEST_GLCM
     ; Case 1: GLCM_Matrix
     ; Case 2: Horizontal measures
     ; Case 3: Vertical measures
+    ; 
+    ; Test 3 test cases on normalization and binszie
+    ; Case 4: Check that for this data the normalization should not change non 0 glcm fields.
+    ; Case 5: Check that glcm has correct binsizes
+    ; Case 6: Check that normalized glcm has correct binsize
     ; to avoid rounding errors as reason for failed ut, tests are performed only to the second second decimal place 
     
     ;---------------------------------------------------------------------------------------------------------------
     ; Setup
     img = [[0,0,1,1],[0,0,1,1],[0,2,2,2],[2,2,3,3]]
+    bins = MAX(img,/NAN)-MIN(img,/NAN)+1
+    new_min = 0
+    new_max = 255
+    bins_normalized = new_max - new_min + 1
     
     ; horizontal glcm
     glcm_horizontal_validation =[[0.166,0.083,0.042,0],[0.083,0.166,0,0],[0.042,0,0.249,0.042],[0,0,0.042,0.083]]
@@ -129,11 +138,19 @@ FUNCTION ROIseries_ut :: TEST_GLCM
     features_vertical = (GLCM_FEATURES(GLCM_MATRIX(img,90),features_validation_vertical_names,IMG=img)).ToArray()
     vertical_difference = ABS(features_vertical-features_validation_vertical_values) GT 0.01
     
+    ; normalization and binsize
+    glcm_normalized = GLCM_MATRIX(img,0,normalize_rs_new_min_max=[new_min,new_max])
+    glcm_horizontal_non0 = glcm_horizontal[WHERE(glcm_horizontal NE 0)]
+    glcm_normalized_non0 = glcm_normalized[WHERE(glcm_normalized NE 0)]
+    
     ;---------------------------------------------------------------------------------------------------------------
     ; Test cases
     ASSERT,TOTAL(glcm_horizontal_difference) LE 0, "glcm deviates in at least one entry more than 0.01 from validation"
     ASSERT,TOTAL(horizontal_difference) LE 0,"horizontal features deviating more than 0.01: "+ STRJOIN(features_validation_horizontal_names[WHERE(horizontal_difference)],", ") 
     ASSERT,TOTAL(vertical_difference) LE 0,"horizontal features deviating more than 0.01: " + STRJOIN(features_validation_vertical_names[WHERE(vertical_difference)],", ") 
+    ASSERT,TOTAL(glcm_horizontal_non0 EQ glcm_normalized_non0)/N_ELEMENTS(glcm_horizontal_non0) EQ 1,"Normalization changed non 0 glcm fields"
+    ASSERT,TOTAL(SIZE(glcm_horizontal,/DIMENSIONS) EQ [bins,bins])/2 EQ 1,"Glcm array size is not as expected: " + STRJOIN(STRTRIM(SIZE(glcm_horizontal,/DIMENSIONS),2),"X")+ " insteadt of "+ STRJOIN(STRTRIM([bins,bins],2),"X")
+    ASSERT,TOTAL(SIZE(glcm_normalized,/DIMENSIONS) EQ [bins_normalized,bins_normalized])/2 EQ 1,"Normalization had effect on glcm array size: "+STRJOIN(STRTRIM(SIZE(glcm_normalized,/DIMENSIONS),2),"X")+ " insteadt of "+ STRJOIN(STRTRIM([bins_normalized,bins_normalized],2),"X")
     
     RETURN,1
 END
