@@ -99,7 +99,7 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
         "ENT":BEGIN ; Entropy
                 weights=ALOG(glcm) ; this returns -inf if value=0, this needs to be set to 0 according to ucalgary:
                 weights[WHERE(~FINITE(weights,NAN=0))]=0; NAN: nan is igonred, 0: -/+ values are finite;
-                result.Add,TOTAL(glcm*weights)
+                result.Add,TOTAL(glcm*weights)*(-1) ; according to paper after total, according to ucalgary before total
               END
               
         "MEAN": result.Add,TOTAL(glcm*ind) ; Mean
