@@ -20,3 +20,4 @@
 mgunit,'ROIseries_ut.TEST_DETER_MINSIZE'
 mgunit,'ROIseries_ut.TEST_CHECK_RASTERSERIES'
 mgunit,'ROIseries_ut.TEST_SPECTRAL_INDEXER'
+mgunit,'ROIseries_ut.TEST_GLCM'

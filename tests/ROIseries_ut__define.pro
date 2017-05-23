@@ -99,6 +99,47 @@ FUNCTION ROIseries_ut :: TEST_SPECTRAL_INDEXER
     RETURN,1
 END
 
+FUNCTION ROIseries_ut :: TEST_GLCM
+    COMPILE_OPT idl2, HIDDEN
+    
+    ; Test 3 test cases with validation values found on: ; http://www.fp.ucalgary.ca/mhallbey/the_glcm.htm
+    ; Case 1: GLCM_Matrix
+    ; Case 2: Horizontal measures
+    ; Case 3: Vertical measures
+    ; to avoid rounding errors as reason for failed ut, tests are performed only to the second second decimal place 
+    
+    ;---------------------------------------------------------------------------------------------------------------
+    ; Setup
+    img = [[0,0,1,1],[0,0,1,1],[0,2,2,2],[2,2,3,3]]
+    
+    ; horizontal glcm
+    glcm_horizontal_validation =[[0.166,0.083,0.042,0],[0.083,0.166,0,0],[0.042,0,0.249,0.042],[0,0,0.042,0.083]]
+    glcm_horizontal = GLCM_MATRIX(img,0)
+    glcm_horizontal_difference = ABS(glcm_horizontal - glcm_horizontal_validation) GT 0.01
+    
+    ; horizontal features
+    features_validation_horizontal_names = ["CON","DIS","COR","MEAN","HOM","ASM","VAR","ENT"] ; ENE, STD and MAX are not on website
+    features_validation_horizontal_values = [0.586,0.418,0.7182362,1.292,0.804,0.145,1.039067,2.0951]
+    features_horizontal = (GLCM_FEATURES(glcm_horizontal,features_validation_horizontal_names, IMG=img)).ToArray()
+    horizontal_difference = ABS(features_horizontal - features_validation_horizontal_values) GT 0.01
+
+    ; vertical features
+    features_validation_vertical_names = ["DIS","MEAN","VAR"]
+    features_validation_vertical_values = [0.664,1.162,0.969705]
+    features_vertical = (GLCM_FEATURES(GLCM_MATRIX(img,90),features_validation_vertical_names,IMG=img)).ToArray()
+    vertical_difference = ABS(features_vertical-features_validation_vertical_values) GT 0.01
+    
+    ;---------------------------------------------------------------------------------------------------------------
+    ; Test cases
+    ASSERT,TOTAL(glcm_horizontal_difference) LE 0, "glcm deviates in at least one entry more than 0.01 from validation"
+    ASSERT,TOTAL(horizontal_difference) LE 0,"horizontal features deviating more than 0.01: "+ STRJOIN(features_validation_horizontal_names[WHERE(horizontal_difference)],", ") 
+    ASSERT,TOTAL(vertical_difference) LE 0,"horizontal features deviating more than 0.01: " + STRJOIN(features_validation_vertical_names[WHERE(vertical_difference)],", ") 
+    
+    RETURN,1
+END
+
+
+
 PRO ROIseries_ut__define
   COMPILE_OPT idl2, HIDDEN
   define = { ROIseries_ut, INHERITS MGutTestCase }
