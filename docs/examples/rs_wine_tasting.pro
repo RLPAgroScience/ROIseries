@@ -26,6 +26,10 @@
 ; -------------------------------------------------------------
 ; 1: Feature Generation
 
+; COMMON block for system testing, else use normal temporary wdir as workingdir.
+COMMON WalleWalle,ManscheStraecke
+IF N_ELEMENTS(ManscheStraecke) NE 0 THEN wdir = ManscheStraecke ELSE wdir = FILEPATH("",/TMP)
+
 ; locate shapefile
 ref = GET_RELDIR('ROIseries_3D__define',1,['data','sentinel_2a'])
 shp = ref+"vector\"+"studyarea.shp"
@@ -48,7 +52,7 @@ FOR i=0,N_ELEMENTS(bands)-1 DO BEGIN &$
     print,"==================================================================" &$
     print,i &$
     current_object_3D = ROIseries_3D() &$
-    temp = current_object_3D.COOKIE_CUTTER(bands[i],FILEPATH(bands[i]),shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA=indexer_formula[i]) &$
+    temp = current_object_3D.COOKIE_CUTTER(bands[i],FILEPATH(bands[i],ROOT_DIR=wdir),shp,id_col_name,rasterseries,SPECTRAL_INDEXER_FORMULA=indexer_formula[i]) &$
     temp = current_object_3D.TIME_FROM_FILENAMES(rasterseries,[15,4],[19,2],[21,2], POSHOUR=[24,2],POSMINUTE=[26,2],POSSECOND=[28,2]) &$
     current_object_1D = current_object_3D.SPATIAL_MIXER("MEAN") &$
     csv_written.add, current_object_1D.FEATURES_TO_CSV(['RAW']) &$
@@ -62,4 +66,4 @@ ENDFOR
 
 ; The list csv_written holds all paths to the CSVs containing the features.
 ; Execute the next line and then copy/paste the console output to your python script. 
-csv_written
+print,csv_written
