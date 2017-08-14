@@ -155,6 +155,32 @@ FUNCTION ROIseries_ut :: TEST_GLCM
     RETURN,1
 END
 
+FUNCTION ROIseries_ut :: TUTORIAL_SYSTEM_TEST
+    COMPILE_OPT idl2, HIDDEN
+    
+    COMMON WalleWalle,ManscheStraecke
+    time = ((TIMESTAMP()).replace("-",""))
+    time = time.replace(":","")
+    ManscheStraecke = FILEPATH("ROIseries_SystemTests\"+time+"\",/TMP)
+    
+    ;-----------------------------------------------------------------------------
+    ; RS_WINE_TASTING tutorial
+    out_folders = ManscheStraecke + ["R","G","B","NIR","NDVI"]
+    
+    ; Execute Script
+    @rs_wine_tasting
+    
+    ; Get file infos
+    csv_files_written = FILE_SEARCH(out_folders,"*.csv")
+    csv_files_written_info = LIST(FILE_INFO(csv_files_written),/EXTRACT)
+    too_small_size_per_file = csv_files_written_info.map(LAMBDA(x:x.size LT 1000))
+    
+    ASSERT,N_ELEMENTS(csv_files_written_info) EQ 20,"Not exactly 20 csv files where written in RS_WINE_TASTING"
+    ASSERT,too_small_size_per_file.where(1) EQ !NULL,"Some csv files are less than 1kB in size, which seems daunting"
+    PRINT,"Please manually clean up if required: " + ManscheStraecke
+        
+    RETURN,1
+END
 
 
 PRO ROIseries_ut__define
