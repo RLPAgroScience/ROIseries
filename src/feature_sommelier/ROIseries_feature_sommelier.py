@@ -50,11 +50,55 @@ class ROIseries_feature_sommelier(object):
     n_jobs = -1
     
     '''
-    this method takes two lists holding sublists of internally unequal (e.g. x_list[k] to x_list[k+1]) 
-    but between each other pairwise equal length. It returns 3 lists: mean_x_list, mean_y_list, std_y_list
+    Interpol_for_stats returns the mean and std for vectors of varying length.
+    
+    It takes two lists (x,y) of lists with varying but pairwise equal length.
+    E.g. len(x[i]) == len(y[i]) but len(x[i]) != len(x[i+1]) 
+    
+    Parameters
+    ----------
+    
+    Examples
+    --------
+    >>> from ROIseries_feature_sommelier import ROIseries_feature_sommelier as rs
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+        
+        
+    >>> n = [15,18,14,20]
+    >>> y = [np.linspace(0,1,n[0]),
+    ...      np.linspace(0,1,n[1])**2,
+    ...      np.linspace(0,1,n[2])**3,
+    ...      np.linspace(0,1,n[3])**4]
+    >>> x = [np.linspace(0,1,n[0]),
+    ...      np.linspace(0,1,n[1]),
+    ...      np.linspace(0,1,n[2]),
+    ...      np.linspace(0,1,n[3])]
+        
+    >>> mean_x, mean_y, std_y = rs.interpol(x,y)
+    >>> plt.plot(x[0],y[0],'ro',label="linear (n={})".format(n[0]))
+    >>> plt.plot(x[1],y[1],'go',label="^2 (n={})".format(n[1]))
+    >>> plt.plot(x[2],y[2],'bo',label="^3 (n={})".format(n[2]))
+    >>> plt.plot(x[3],y[3],'co',label="^4 (n={})".format(n[3]))
+        
+    >>> plt.plot(mean_x,mean_y,'ko',label="samples to np.linspace(0, 1, 100) iterpolated and mean")
+    >>> plt.errorbar(mean_x,mean_y,std_y,label="samples to np.linspace(0, 1, 100) iterpolated and std")
+    >>> plt.legend()
+    >>> plt.axes().set_title("interp interpolates ")
+    
+    
+    Returns
+    -------
+    
+    It returns 3 lists: 
+        mean_x_list: np.linspace(0, 1, 100), as this is the
+                     only option required for recall and precision.
+        
+        mean_y_list: the average value interpolated to mean_x_list
+        std_y_list: the standard deviation interpolate to std_y_list    
     '''
     @staticmethod
-    def interpol(x,y,correct_first_last = False):
+    def interpol_for_stats(x,y,correct_first_last = False):
  
         mean_x = np.linspace(0, 1, 100)
         
@@ -368,7 +412,7 @@ class ROIseries_feature_sommelier(object):
         if mean == True:
             fpr = [i['fpr'] for i in self.roc_curve]
             tpr = [i['tpr'] for i in self.roc_curve]
-            mean_fpr, mean_tpr, std_tpr = self.interpol(fpr,tpr,correct_first_last=True)
+            mean_fpr, mean_tpr, std_tpr = self.interpol_for_stats(fpr,tpr,correct_first_last=True)
             mean_auc = np.mean(self.roc_auc)
         else:
             print("not implemented yet")
@@ -400,7 +444,7 @@ class ROIseries_feature_sommelier(object):
         precision2, recall2 = zip(*[self.interpolate_pr(p,r) for p,r in zip(precision,recall)])
         
         if mean == True:
-            mean_x, mean_y, std_y = self.interpol(recall2,precision2)
+            mean_x, mean_y, std_y = self.interpol_for_stats(recall2,precision2)
             if get_data == False:
                 plt.errorbar(mean_x,mean_y,yerr =std_y, label='PR: mean & standard deviation over CV')
                 plt.xlabel('recall')
