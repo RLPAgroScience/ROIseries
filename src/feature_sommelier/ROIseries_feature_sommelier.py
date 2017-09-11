@@ -218,7 +218,7 @@ class ROIseries_feature_sommelier(object):
         self.strata = df[strata_column]
         
         drop_columns.extend([class_column, strata_column])
-        df.drop(drop_columns,axis=1, inplace=1)
+        df.drop(drop_columns,axis=1, inplace=True)
         
         self.id = df.index
         self.feature_names = df.columns
