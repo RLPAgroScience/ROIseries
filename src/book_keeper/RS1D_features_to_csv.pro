@@ -29,6 +29,14 @@
 ;    CSV_PATH
 ;
 ; :Returns:
+;    Path to csv that was written. This CSV has the following format:
+;        Index Column (1):
+; 		 - name: self.id + "_ID"
+;		 - values: [id values stored in the (self.data).keys() attribute of the ROIseries_1D object]
+;		 
+;        Feature Columns (many):
+;		 - names: self.id + "_SpatialMixerType_"+"_TemporalMixerType" (if "_TemporalMixerType" EQ "_RAW": +"_time")
+;		 - values: [features for each object/id]
 ;
 ; :Examples:
 ;
