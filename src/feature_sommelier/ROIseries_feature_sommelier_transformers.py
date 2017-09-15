@@ -23,6 +23,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from sklearn.base import TransformerMixin
+from math import pi
 
 
 def timeindex_from_colsuffix(df):
@@ -195,3 +196,28 @@ class TAFtoTRF(TransformerMixin):
         # resulting in (time,R_ID) * (features,TRF_name)
         result = TRF_transform(df_timeindex, self.shift_dict)
         return result.stack('R_ID')
+
+
+def DOY_to_DOYcircular(doy):
+    """
+    Transfors day of the year to a circular representation.
+
+    example
+    -------
+    >>> from matplotlib import pyplot as plt
+    >>> DOY = np.arange(365,step=10)
+    >>> DOYcircular = DOY_to_DOYcircular(DOY)
+    >>> plt.plot(DOY,".")
+    >>> plt.plot(DOYcircular['doy_sin'],DOYcircular['doy_cos'],".")
+    >>> plt.axes().set_xlabel('doy_sin')
+    >>> plt.axes().set_ylabel('doy_cos')
+
+    >>> verify that all differences are euqal:
+    >>> doy_sin_diff = np.diff(DOYcircular['doy_sin'])**2
+    >>> doy_cos_diff = np.diff(DOYcircular['doy_cos'])**2
+    >>> distance = np.sqrt(doy_sin_diff + doy_cos_diff)
+    >>> np.unique(np.round(distance,5))
+    """
+    doy_t = 2 * pi * doy/365
+
+    return dict(zip(["doy_sin", "doy_cos"], [np.sin(doy_t), np.cos(doy_t)]))
