@@ -54,7 +54,7 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
             'MIN': result = time_indgen.map(LAMBDA(i,x:MIN(((*x)[*,*,i]),/NAN)),arr)
             'MAX': result = time_indgen.map(LAMBDA(i,x:MAX(((*x)[*,*,i]),/NAN)),arr)
             'SUM': result = time_indgen.map(LAMBDA(i,x:TOTAL(((*x)[*,*,i]),/NAN)),arr)
-            'MEDIAN': result = time_indgen.map(LAMBDA(i,x:MEDIAN(((*x)[*,*,i]),/NAN)),arr)
+            'MEDIAN': result = time_indgen.map(LAMBDA(i,x:MEDIAN(((*x)[*,*,i]))),arr)
             ELSE: BEGIN
                   IF TYPE.StartsWith('GLCM') THEN BEGIN
                       glcm_type = (TYPE.split('_'))[1]
