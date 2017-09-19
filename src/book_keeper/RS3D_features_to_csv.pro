@@ -56,6 +56,7 @@ PRO RS3D_features_to_csv,FEATURES,CSV,SelfData,PREFIX=prefix
     FeatureNames=LIST()
     dat=(*SelfData).values()
     
+    MESSAGE,"Deprecation Warning: This Method will be deprecated in future Versions. Please use the standard 3D->1D->CSV workflow", /INFORMATIONAL
     
     FOREACH f,FEATURES DO BEGIN
         CASE f OF
