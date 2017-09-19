@@ -37,6 +37,10 @@
 ;        Feature Columns (many):
 ;		 - names: self.id + "_SpatialMixerType_"+"_TemporalMixerType" (if "_TemporalMixerType" EQ "_RAW": +"_time")
 ;		 - values: [features for each object/id]
+;	     
+;	     Filename:
+;	     - FILEPATH(self.id+"_features_"+(TIMESTAMP()).replace(":","-")+".csv",ROOT_DIR=self.db,SUBDIRECTORY=['features'])
+;	     - e.g. B_features_2017-09-11T10-26-46.2000453472123Z (B = ID, 2017-09-11T10-26-46.2000453472123Z = Time file was written)
 ;
 ; :Examples:
 ;
