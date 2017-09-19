@@ -67,6 +67,9 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
                       
                       ; GLCM features: [0]: GLCM_features returns a list with a single element if only one feature is calculated, so element needs to be exctracted.
                       result = time_indgen.map(LAMBDA(i,glcm,x,type:(GLCM_FEATURES((*glcm)[*,*,i],type,IMG=((*x)[*,*,i])))[0]),glcm_mat,arr,glcm_type)
+                  ENDIF ELSE IF TYPE.StartsWith('PERCENTILE') THEN BEGIN
+                      perc = REPLICATE(FIX((TYPE.split('_'))[1]),time_count)
+                      result = time_indgen.map(LAMBDA(i,x,p:PERCENTILE_RS(((*x)[*,*,i]),p)),arr,perc)
                   ENDIF ELSE BEGIN
                       MESSAGE,TYPE," will not be calculated since it is not a vaild option"
                   ENDELSE
