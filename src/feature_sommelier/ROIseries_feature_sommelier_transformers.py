@@ -170,6 +170,7 @@ class TAFtoTRF(TransformerMixin):
     >>> shift_dict = dict(zip(["m3","m2","m1","p1","p2","p3"],[-2,-1,0,1,2,3]))
 
     # do the transforation in a pipeline
+    >>> from sklearn.pipeline import make_pipeline
     >>> t1=TAFtoTRF(shift_dict)
     >>> p1 = make_pipeline(t1)
     >>> dfx = p1.fit_transform(df)
@@ -195,7 +196,7 @@ class TAFtoTRF(TransformerMixin):
         # Do the TRF transformation and bring the 'R_ID' back into the index
         # resulting in (time,R_ID) * (features,TRF_name)
         result = TRF_transform(df_timeindex, self.shift_dict)
-        return result.stack('R_ID')
+        return result.stack(df.index.name)
 
 
 def DOY_to_DOYcircular(doy):
