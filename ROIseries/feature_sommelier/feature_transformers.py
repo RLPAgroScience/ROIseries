@@ -21,9 +21,8 @@
 # TAF to TRF transformation
 import pandas as pd
 import numpy as np
-from scipy import stats
 from sklearn.base import TransformerMixin
-from math import pi
+import calendar
 
 
 def timeindex_from_colsuffix(df):
@@ -40,25 +39,29 @@ def timeindex_from_colsuffix(df):
     2              2388.691489            1005.478723
     4              1756.762162            698.162162
     """
+    df = df.copy()
 
-    feature_time = [(i.rsplit("_", 1)[0], float(i.rsplit("_", 1)[1]))
-                    for i in df.columns]
+    cols = np.array([i.rsplit("_", 1) for i in df.columns])
 
+    feature_time = list(zip(cols[:, 0],
+                            pd.to_datetime(np.float32(cols[:, 1]),
+                                           unit='D',
+                                           origin='julian')))
     df.columns = pd.MultiIndex.from_tuples(
             feature_time, names=["feature", "time"])
 
     if df.index.name is None:
         df.index.name = 'original_id'
 
-    result = df.stack('time').unstack(df.index.name)
+    df = df.stack("feature").transpose()
 
-    if result.index.is_unique:
-        return result
+    if df.index.is_unique:
+        return df
     else:
         raise ValueError("The time is not unique for each feature and id")
 
 
-def reltime_from_absdate(time_array, sign_digits=0):
+def reltime_from_absdate(DatetimeIndex):
     """
     Transform a numeric 1D array with (array-min(array)) / mode(diff(array))
 
@@ -69,9 +72,6 @@ def reltime_from_absdate(time_array, sign_digits=0):
     ----------
     time_array : a 1D numeric array e.g.
         array([ 35.5, 45.5, 55.5, 65.5])
-    sign_digits: int
-        the number of significant digits in the time array. Try smaller values
-        if mode != min error occurs.
 
     Returns
     -------
@@ -79,89 +79,39 @@ def reltime_from_absdate(time_array, sign_digits=0):
         array([0, 1, 2, 3])
     """
 
-    time_sortedSet = np.unique(time_array)
-    time_sortedSet_sig = np.round(time_sortedSet, decimals=sign_digits)
-    time_intervall = np.diff(time_sortedSet_sig)
-    time_intervall_mode = stats.mode(time_intervall)[0][0]
+    if not DatetimeIndex.is_unique:
+        raise ValueError("DatetimeIndex must be unique")
 
-    if time_intervall_mode == np.min(time_intervall):
-        print("detected time base: {}".format(time_intervall_mode))
+    t_delta = (DatetimeIndex[1:] - DatetimeIndex[0:-1])
+    delta_mode = t_delta.to_series().mode()[0]
+
+    if delta_mode == min(t_delta):
+        print("detected time base: {}".format(delta_mode))
     else:
         raise ValueError("Mode and Min of differences of adjacent time events "
                          "must be equal")
 
-    time_array = np.round(time_array, decimals=sign_digits)
-    time_array_shifted = (time_array - np.min(time_array))
-
-    if any(time_array_shifted % time_intervall_mode):
+    if any([i%delta_mode for i in t_delta]):
         raise ValueError("The difference of adjacent time events must be "
-                         "a multile of the time_interval_mode "
+                         "a multiple of the delta_mode "
                          "(considering sign_digits)")
     else:
-        return((time_array_shifted/time_intervall_mode).astype(int))
-
-
-def TRF_transform(df, shift_dict):
-    """
-    Transforms the features in a DataFrame from TAF to TRF
-
-    Parameters
-    ----------
-    df : DataFrame of structure: time (index) * features (columns)
-        multiple objects with different ids have to be represented as part
-        of a MulitiIndex in the Column Headers e.g.
-
-        feature              B_MAX_RAW                           B_MEAN_RAW
-        R_ID                         1       3       2       4            1
-        time         reltime
-        2.457364e+06 0           902.0  1139.0   895.0  1071.0   580.702970
-        2.457374e+06 1          9524.0  8508.0  8554.0  8599.0  8327.247525
-        2.457384e+06 2          1119.0  1392.0  1187.0  1287.0   859.069307
-
-    shift_dict: Dictionary that defines the names and the shifts applied in
-        the TRF transformation. e.g. in the following example m2 -1 means that
-        TRFs with a shift of -1 (1 step back in time from t0) are renamed to
-        featureName_m1.
-        {'m1': 0, 'm2': -1, 'm3': -2, 'p1': 1, 'p2': 2, 'p3': 3}
-    """
-
-    # just make sure that dates are sorted
-    df.sort_index(inplace=True, ascending=True)
-
-    # to realize the inuition that a negative shift results in referencing an
-    # earlier point in time, swap all signs
-    shift_dict = {k: v*-1 for k, v in shift_dict.items()}
-
-    # with the current implementation this is wrong: shift across all features
-    # results in shifting features into each other!
-
-    shifted_dfs = []
-
-    for k, v in shift_dict.items():
-
-        # v == 0 makes shift return the same dataframe and not the desired copy
-        if v == 0:
-            df_shifted = df.copy()
-        else:
-            df_shifted = df.shift(v)
-
-        df_shifted["trf_label"] = k
-        df_shifted.set_index("trf_label", append=True, inplace=True)
-        shifted_dfs.append(df_shifted)
-
-    shifted_dfs = pd.concat(shifted_dfs)
-
-    return shifted_dfs.unstack("trf_label")
+        reltime = (DatetimeIndex - min(DatetimeIndex)) / delta_mode
+        reltime.name = 'reltime'
+        return reltime
 
 
 class TAFtoTRF(TransformerMixin):
+    # TODO: This transformer should be split up into multiple transformers!
     """
     Transform a DataFrame holding TAF to TRF
 
     Example
     -------
     # get the csvs
-    >>> csv = file_search("C:/Users/keck/Desktop/delete_if_unknown/",".csv")
+    >>> import ROIseries as rs
+    >>> import pandas as pd
+    >>> csv = rs.sub_routines.file_search("C:/Users/keck/Desktop/delete_if_unknown/",".csv")
     >>> df_list = [pd.read_csv(i,index_col = 0) for i in csv] #)
     >>> df = pd.concat(df_list,axis=1)
 
@@ -169,7 +119,7 @@ class TAFtoTRF(TransformerMixin):
     >>> df.index = df.index.astype(str)
     >>> shift_dict = dict(zip(["m3","m2","m1","p1","p2","p3"],[-2,-1,0,1,2,3]))
 
-    # do the transforation in a pipeline
+    # do the transformation in a pipeline
     >>> from sklearn.pipeline import make_pipeline
     >>> t1=TAFtoTRF(shift_dict)
     >>> p1 = make_pipeline(t1)
@@ -182,43 +132,90 @@ class TAFtoTRF(TransformerMixin):
         return(self)
 
     def transform(self, df):
-        # use time in column for row indices and stack columns
-        df_timeindex = timeindex_from_colsuffix(df)
+        """
+            Transforms the features in a DataFrame from TAF to TRF
 
-        # transform the absolute date into relative dates and add it to index
-        reltime = reltime_from_absdate(df_timeindex.index.get_values())
-        df_timeindex.set_index(reltime, append=True, inplace=True)
+            Parameters
+            ----------
+            df : DataFrame of structure: time (index) * features (columns)
+                multiple objects with different ids have to be represented as part
+                of a MulitiIndex in the Column Headers e.g.
 
-        new_names = list(df_timeindex.index.names[0:-1])
-        new_names.append("reltime")
-        df_timeindex = df_timeindex.rename_axis(new_names, axis="rows")
+                feature              B_MAX_RAW                           B_MEAN_RAW
+                R_ID                         1       3       2       4            1
+                time         reltime
+                2.457364e+06 0           902.0  1139.0   895.0  1071.0   580.702970
+                2.457374e+06 1          9524.0  8508.0  8554.0  8599.0  8327.247525
+                2.457384e+06 2          1119.0  1392.0  1187.0  1287.0   859.069307
 
-        # Do the TRF transformation and bring the 'R_ID' back into the index
-        # resulting in (time,R_ID) * (features,TRF_name)
-        result = TRF_transform(df_timeindex, self.shift_dict)
-        return result.stack(df.index.name)
+            shift_dict: Dictionary that defines the names and the shifts applied in
+                the TRF transformation. e.g. in the following example m2 -1 means that
+                TRFs with a shift of -1 (1 step back in time from t0) are renamed to
+                featureName_m1.
+                {'m1': 0, 'm2': -1, 'm3': -2, 'p1': 1, 'p2': 2, 'p3': 3}
+            """
+        df = df.copy()
+
+        # just make sure that dates are sorted
+        df.sort_index(inplace=True, ascending=True)
+
+        # to realize the inuition that a negative shift results in referencing an
+        # earlier point in time, swap all signs
+        shift_dict = {k: v * -1 for k, v in self.shift_dict.items()}
+
+        shifted_dfs = []
+
+        for k, v in shift_dict.items():
+
+            # v == 0 makes shift return the same dataframe and not the desired copy
+            if v == 0:
+                df_shifted = df.copy()
+            else:
+                df_shifted = df.shift(v)
+
+            df_shifted["trf_label"] = k
+            df_shifted.set_index("trf_label", append=True, inplace=True)
+            shifted_dfs.append(df_shifted)
+
+        shifted_dfs = pd.concat(shifted_dfs)
+        return shifted_dfs.unstack("trf_label")
 
 
-def DOY_to_DOYcircular(doy):
+def doy_circular(DatetimeIndex):
     """
-    Transfors day of the year to a circular representation.
+    Transforms rle  day of the year to a circular representation.
 
     example
     -------
     >>> from matplotlib import pyplot as plt
-    >>> DOY = np.arange(365,step=10)
-    >>> DOYcircular = DOY_to_DOYcircular(DOY)
-    >>> plt.plot(DOY,".")
-    >>> plt.plot(DOYcircular['doy_sin'],DOYcircular['doy_cos'],".")
+    >>> import ROIseries as rs
+    >>> import pandas as pd
+    #
+    # 2015: no leap, 2016: leap
+    >>> DatetimeIndex = pd.date_range('2015-01-01','2016-12-31')
+    >>> doy_circular = rs.feature_transformers.doy_circular(DatetimeIndex)
+    >>> doy = DatetimeIndex.dayofyear
+    >>> plt.plot(doy,".")
+    >>> plt.title('DOY: jump between years 2015 and 2016')
+    >>> plt.axes().set_xlabel('doy for 2015 [1:365], 2016 [366:731]')
+    >>> plt.axes().set_ylabel('doy')
+    >>> plt.figure()
+    >>> plt.plot(doy_circular['doy_sin'],doy_circular['doy_cos'],".")
+    >>> plt.title('DOY circular: no jump between years 2015 and 2016')
     >>> plt.axes().set_xlabel('doy_sin')
     >>> plt.axes().set_ylabel('doy_cos')
 
-    >>> verify that all differences are euqal:
-    >>> doy_sin_diff = np.diff(DOYcircular['doy_sin'])**2
-    >>> doy_cos_diff = np.diff(DOYcircular['doy_cos'])**2
+    >>> #verify that all differences are euqal:
+    >>> doy_sin_diff = np.diff(doy_circular['doy_sin'])**2
+    >>> doy_cos_diff = np.diff(doy_circular['doy_cos'])**2
     >>> distance = np.sqrt(doy_sin_diff + doy_cos_diff)
     >>> np.unique(np.round(distance,5))
+    >>> # there the distances in a leap year are a little bit smaller due to more days / year
     """
-    doy_t = 2 * pi * doy/365
+    doy = np.array(DatetimeIndex.dayofyear,dtype=np.float32)
+    leap_bol = np.array([calendar.isleap(y) for y in DatetimeIndex.year])
 
-    return dict(zip(["doy_sin", "doy_cos"], [np.sin(doy_t), np.cos(doy_t)]))
+    doy[leap_bol] = 2 * np.pi * doy[leap_bol] / 366
+    doy[~leap_bol] = 2 * np.pi * doy[~leap_bol] / 365
+
+    return dict(zip(["doy_sin", "doy_cos"], [np.sin(doy), np.cos(doy)]))
