@@ -125,8 +125,9 @@ class TAFtoTRF(TransformerMixin):
     >>> p1 = make_pipeline(t1)
     >>> dfx = p1.fit_transform(df)
     """
-    def __init__(self, shift_dict):
+    def __init__(self, shift_dict, exclude = None):
         self.shift_dict = shift_dict
+        self.exclude = exclude
 
     def fit(self, shift_dict):
         return(self)
@@ -155,9 +156,21 @@ class TAFtoTRF(TransformerMixin):
                 {'m1': 0, 'm2': -1, 'm3': -2, 'p1': 1, 'p2': 2, 'p3': 3}
             """
         df = df.copy()
+        trf_label = 'trf_label'
 
-        # just make sure that dates are sorted
+        # Make sure that the DataFrame is sorted
+        # - sorted DatetimeIndex: Required for correct shifting
+        # - sorted columns: required for MultiIndex slicing
         df.sort_index(inplace=True, ascending=True)
+        df = df.reindex_axis(sorted(df.columns), axis=1)
+
+        # exclude and append
+        idx = pd.IndexSlice
+        df_excluded = df.loc[:, idx[:, self.exclude]]
+        df = df.drop(list(df_excluded.columns.values), axis=1)
+
+        df_excluded.columns = pd.MultiIndex.from_tuples([(i, k, '') for i, k in df_excluded.columns.values],
+                                                        names=df_excluded.columns.names + [trf_label])
 
         # to realize the inuition that a negative shift results in referencing an
         # earlier point in time, swap all signs
@@ -173,12 +186,14 @@ class TAFtoTRF(TransformerMixin):
             else:
                 df_shifted = df.shift(v)
 
-            df_shifted["trf_label"] = k
-            df_shifted.set_index("trf_label", append=True, inplace=True)
+            df_shifted[trf_label] = k
+            df_shifted.set_index(trf_label, append=True, inplace=True)
             shifted_dfs.append(df_shifted)
 
         shifted_dfs = pd.concat(shifted_dfs)
-        return shifted_dfs.unstack("trf_label")
+        df = shifted_dfs.unstack(trf_label)
+
+        return pd.concat([df, df_excluded], axis=1)
 
 
 def doy_circular(DatetimeIndex):
