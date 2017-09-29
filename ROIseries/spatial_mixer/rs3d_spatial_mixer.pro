@@ -57,16 +57,18 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_DATA,TYPE
             'MEDIAN': result = time_indgen.map(LAMBDA(i,x:MEDIAN(((*x)[*,*,i]))),arr)
             ELSE: BEGIN
                   IF TYPE.StartsWith('GLCM') THEN BEGIN
+                      
                       glcm_type = (TYPE.split('_'))[1]
                       direction = (TYPE.split('_'))[2]
                       
                       ; For GLCM matrix: Scale values to 0-255 while pertaining nan values
-                      *arr = BYTSCL(*arr,/NAN)*(*arr/*arr)
-                      glcm_mat = PTR_NEW(/ALLOCATE_HEAP)
-                      *glcm_mat = time_indgen.map(LAMBDA(i,x,d:GLCM_MATRIX(((*x)[*,*,i]),d,NORMALIZE_RS_NEW_MIN_MAX=[0,255])),arr,direction)
+                      arr_bytscl = BYTSCL(*arr,/NAN)*(*arr/*arr)
                       
-                      ; GLCM features: [0]: GLCM_features returns a list with a single element if only one feature is calculated, so element needs to be exctracted.
-                      result = time_indgen.map(LAMBDA(i,glcm,x,type:(GLCM_FEATURES((*glcm)[*,*,i],type,IMG=((*x)[*,*,i])))[0]),glcm_mat,arr,glcm_type)
+                      result = LIST()
+                      FOR i=0,time_count-1 DO BEGIN &$
+                          glcm = GLCM_MATRIX(arr_bytscl[*,*,i],direction,NORMALIZE_RS_NEW_MIN_MAX=[0,255]) &$
+                          result.add,GLCM_FEATURES(glcm,glcm_type,img=arr_bytscl[*,*,i]),/EXTRACT &$
+                      ENDFOR 
                   ENDIF ELSE IF TYPE.StartsWith('PERCENTILE') THEN BEGIN
                       perc = REPLICATE(FIX((TYPE.split('_'))[1]),time_count)
                       result = time_indgen.map(LAMBDA(i,x,p:PERCENTILE_RS(((*x)[*,*,i]),p)),arr,perc)
