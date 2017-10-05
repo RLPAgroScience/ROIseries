@@ -42,11 +42,12 @@ def timeindex_from_colsuffix(df):
     df = df.copy()
 
     cols = np.array([i.rsplit("_", 1) for i in df.columns])
-
+    # since julian date origin is at noon, subtract 12 hours = half a day
     feature_time = list(zip(cols[:, 0],
-                            pd.to_datetime(np.float32(cols[:, 1]),
+                            pd.to_datetime(np.float32(cols[:, 1])-0.5,
                                            unit='D',
                                            origin='julian')))
+
     df.columns = pd.MultiIndex.from_tuples(
             feature_time, names=["feature", "time"])
 
