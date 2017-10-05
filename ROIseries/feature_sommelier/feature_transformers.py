@@ -98,8 +98,10 @@ def reltime_from_absdate(DatetimeIndex):
                          "(considering sign_digits)")
     else:
         reltime = (DatetimeIndex - min(DatetimeIndex)) / delta_mode
+        # Found no option for direct delta_mode (pd.Timedelta) -> frequency conversion: detour via dummy time series:
+        freq = pd.infer_freq([DatetimeIndex[0], DatetimeIndex[0] + delta_mode, DatetimeIndex[0] + delta_mode * 2])
         reltime.name = 'reltime'
-        return reltime
+        return reltime, freq
 
 
 class TAFtoTRF(TransformerMixin):
