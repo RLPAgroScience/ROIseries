@@ -128,7 +128,7 @@ class TAFtoTRF(TransformerMixin):
     >>> p1 = make_pipeline(t1)
     >>> dfx = p1.fit_transform(df)
     """
-    def __init__(self, shift_dict, exclude = None):
+    def __init__(self, shift_dict, exclude=None):
         self.shift_dict = shift_dict
         self.exclude = exclude
 
@@ -164,12 +164,18 @@ class TAFtoTRF(TransformerMixin):
         # Make sure that the DataFrame is sorted
         # - sorted DatetimeIndex: Required for correct shifting
         # - sorted columns: required for MultiIndex slicing
-        df.sort_index(inplace=True, ascending=True)
-        df = df.reindex_axis(sorted(df.columns), axis=1)
+        for i in [0, 1]:
+            df.sort_index(axis=i, inplace=True, ascending=True)
 
         # exclude and append
-        idx = pd.IndexSlice
-        df_excluded = df.loc[:, idx[:, self.exclude]]
+        if self.exclude == None:
+            df_excluded = df.iloc[:, 0:0]
+        else:
+            try:
+                df_excluded = df.loc[:, self.exclude]
+            except KeyError as e:
+                print('exclude should contain valid column slice for df[:, exclude]')
+
         df = df.drop(list(df_excluded.columns.values), axis=1)
 
         df_excluded.columns = pd.MultiIndex.from_tuples([(i, k, '') for i, k in df_excluded.columns.values],
