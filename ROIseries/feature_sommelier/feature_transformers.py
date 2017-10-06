@@ -239,7 +239,17 @@ def doy_circular(DatetimeIndex):
     doy = np.array(DatetimeIndex.dayofyear,dtype=np.float32)
     leap_bol = np.array([calendar.isleap(y) for y in DatetimeIndex.year])
 
-    doy[leap_bol] = 2 * np.pi * doy[leap_bol] / 366
-    doy[~leap_bol] = 2 * np.pi * doy[~leap_bol] / 365
+    # Aim: Transform DOY (1, 365) to a circular coordinate system
+    # => 2 pi = 1 circle
+    # => Number of days/year: 366 (leap year), 365 (normal year)
+    # => Multiply 2 pi by a factor:
+    # ==> first doy: 0
+    # ==> last doy: (#DoyPerYear-1)/#DoyPerYear to ensure: sine and cosine functions do not return
+    #               the same value for first and last day.
+    # => Use this set of values between 0 and (just below) 2 pi to calculate sine and cosine.
+    #    Distances within this Coordinate System (cp. https://en.wikipedia.org/wiki/Unit_circle) should be a valid
+    #    metric for the temporal distances between days seamlessly across years (no 365 to 1 jump as in ordinary DOY)
+    doy[leap_bol] = 2 * np.pi * ((doy[leap_bol]-1) / 366)
+    doy[~leap_bol] = 2 * np.pi * ((doy[~leap_bol]-1) / 365)
 
     return dict(zip(["doy_sin", "doy_cos"], [np.sin(doy), np.cos(doy)]))
