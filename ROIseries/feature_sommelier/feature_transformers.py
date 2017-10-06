@@ -171,10 +171,7 @@ class TAFtoTRF(TransformerMixin):
         if self.exclude == None:
             df_excluded = df.iloc[:, 0:0]
         else:
-            try:
-                df_excluded = df.loc[:, self.exclude]
-            except KeyError as e:
-                print('exclude should contain valid column slice for df[:, exclude]')
+            df_excluded = df.loc[:, self.exclude]
 
         df = df.drop(list(df_excluded.columns.values), axis=1)
 
