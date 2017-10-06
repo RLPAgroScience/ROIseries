@@ -1,2 +1,2 @@
-from ROIseries.feature_sommelier import feature_sommelier, feature_transformers
+from ROIseries.feature_sommelier import feature_sommelier, feature_transformers, scoring_metrics
 from ROIseries.sub_routines import sub_routines
