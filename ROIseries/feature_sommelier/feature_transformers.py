@@ -132,16 +132,16 @@ class TAFtoTRF(TransformerMixin):
         self.shift_dict = shift_dict
         self.exclude = exclude
 
-    def fit(self, shift_dict):
-        return(self)
+    def fit(self, x, y=None):
+        return self
 
-    def transform(self, df):
+    def transform(self, x, y=None):
         """
             Transforms the features in a DataFrame from TAF to TRF
 
             Parameters
             ----------
-            df : DataFrame of structure: time (index) * features (columns)
+            x : DataFrame of structure: time (index) * features (columns)
                 multiple objects with different ids have to be represented as part
                 of a MulitiIndex in the Column Headers e.g.
 
@@ -158,7 +158,7 @@ class TAFtoTRF(TransformerMixin):
                 featureName_m1.
                 {'m1': 0, 'm2': -1, 'm3': -2, 'p1': 1, 'p2': 2, 'p3': 3}
             """
-        df = df.copy()
+        df = x.copy()
         trf_label = 'trf_label'
 
         # Make sure that the DataFrame is sorted
@@ -178,7 +178,7 @@ class TAFtoTRF(TransformerMixin):
         df_excluded.columns = pd.MultiIndex.from_tuples([(i, k, '') for i, k in df_excluded.columns.values],
                                                         names=df_excluded.columns.names + [trf_label])
 
-        # to realize the inuition that a negative shift results in referencing an
+        # to realize the intuition that a negative shift results in referencing an
         # earlier point in time, swap all signs
         shift_dict = {k: v * -1 for k, v in self.shift_dict.items()}
 
