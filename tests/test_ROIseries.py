@@ -53,8 +53,9 @@ def df_trf():
     df_trf = pd.read_csv(io.StringIO(csv), index_col=[0], header=[0, 1, 2])
     df_trf.index = pd.DatetimeIndex(df_trf.index, name='time', freq='12D')
     df_trf.columns.names = ['ID', 'feature', 'trf_label']
-    for i in [0,1]:
-        df_trf.sort_index(axis=i, inplace=True)
+
+    rs.sub_routines.sort_index_columns_inplace(df_trf)
+    df_trf = df_trf.stack('ID')
 
     return df_trf
 
@@ -127,8 +128,8 @@ def test_trf_result(df, df_trf):
 def test_trf_exclusion(df, df_trf):
     df_time = rs.feature_transformers.timeindex_from_colsuffix(df)
 
-    df_trf = df_trf.drop([('ID_5', 'Feature_1')], axis=1)
-    df_trf[('ID_5', 'Feature_1', '')] = df_time.loc[:, ('ID_5', 'Feature_1')]
+    rs.sub_routines.sort_index_columns_inplace(df_time)
+    df_time = df_time.stack('ID')
 
     shift_dict = dict(zip(["m2", "m1", "p1"], [-1, 0, 1]))
     t1 = rs.feature_transformers.TAFtoTRF(shift_dict, exclude=(slice('ID_5','ID_5'),slice('Feature_1')))

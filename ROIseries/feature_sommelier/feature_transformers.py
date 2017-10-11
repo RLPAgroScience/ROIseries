@@ -54,6 +54,7 @@ def timeindex_from_colsuffix(df):
     if df.index.name is None:
         df.index.name = 'original_id'
 
+    rs.sub_routines.sort_index_columns_inplace(df)
     df = df.stack("feature").transpose()
 
     if df.index.is_unique:
@@ -201,6 +202,22 @@ class TAFtoTRF(TransformerMixin):
 
         return pd.concat([df, df_excluded], axis=1)
 
+
+class ReshapeDF(TransformerMixin):
+    """Apply various DataFrame transformations without changing the data"""
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+        df = x.copy()
+        df = df.stack(0)
+        df.columns = pd.Index([k + "_" + i if i != "" else k for k, i in df.columns.values],
+                               name='features')
+        # df.loc[:, 'class'] = np.where(pd.isnull(df.loc[:, 'class']), False, True)
+
+        df = df.reset_index(['reltime', 'doy_sin', 'doy_cos'])
+        return df
 
 def doy_circular(DatetimeIndex):
     """
