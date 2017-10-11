@@ -72,11 +72,11 @@ def metrics():
     s_2_tn, s_2_fp, s_2_fn, s_2_tp = confusion_matrix(s_2_true, s_2_pred).ravel()
     s_2_n = len(s_2_true)
 
-    y_true = np.array(s_1_true + s_2_true)
+    y_true = pd.Series(np.array(s_1_true + s_2_true),
+                        index=pd.Index(np.array(['s_1'] * len(s_1_true) + ['s_2'] * len(s_2_true)), name='strata'))
     y_pred = np.array(s_1_pred + s_2_pred)
-    strata = np.array(['s_1'] * len(s_1_true) + ['s_2'] * len(s_2_true))
 
-    metrics = {'y_true':y_true, 'y_pred':y_pred, 'strata':strata,
+    metrics = {'y_true':y_true, 'y_pred':y_pred,
                "s_1_tn":s_1_tn, "s_1_fp":s_1_fp, "s_1_fn":s_1_fn, "s_1_tp":s_1_tp, "s_1_n":s_1_n,
                "s_2_tn":s_2_tn, "s_2_fp":s_2_fp, "s_2_fn":s_2_fn, "s_2_tp":s_2_tp, "s_2_n":s_2_n}
 
@@ -160,8 +160,8 @@ def test_errors_per_stratum_count(metrics):
     m = metrics
 
     # n_errors, n_samples = ([s_1_fp + s_1_fn, s_2_fp + s_2_fn], [len(s_1_true), len(s_2_true)])
-    n_errors = rs.scoring_metrics.errors_per_stratum_count(m["y_true"], m["y_pred"], m["strata"])
-    assert tuple(n_errors) == (m["s_1_fp"] + m["s_1_fn"], m["s_2_fp"] + m["s_2_fn"])
+    n_errors = rs.scoring_metrics.errors_per_stratum_count(m["y_true"], m["y_pred"], "strata")
+    assert n_errors == np.mean([m["s_1_fp"] + m["s_1_fn"], m["s_2_fp"] + m["s_2_fn"]])
 
 
 def test_errors_per_stratum_count_normalize(metrics):
@@ -170,10 +170,10 @@ def test_errors_per_stratum_count_normalize(metrics):
     normalize_denominator = 7  # e.g. days/week
     fraction_s_1 = m['s_1_n'] / normalize_denominator
     fraction_s_2 = m['s_2_n'] / normalize_denominator
-    normalized_errors = ((m["s_1_fp"] + m["s_1_fn"]) / fraction_s_1,
-                         (m["s_2_fp"] + m["s_2_fn"]) / fraction_s_2)
+    normalized_errors = np.mean([(m["s_1_fp"] + m["s_1_fn"]) / fraction_s_1,
+                         (m["s_2_fp"] + m["s_2_fn"]) / fraction_s_2])
 
-    n_errors = rs.scoring_metrics.errors_per_stratum_count(m["y_true"], m["y_pred"], m["strata"],
+    n_errors = rs.scoring_metrics.errors_per_stratum_count(m["y_true"], m["y_pred"], "strata",
                                                            normalize_denominator=normalize_denominator)
 
-    assert tuple(n_errors) == normalized_errors
+    assert n_errors == normalized_errors

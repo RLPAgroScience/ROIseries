@@ -1,8 +1,8 @@
 import numpy as np
 
 
-def errors_per_stratum_count(y_true, y_pred, strata, normalize_denominator=None):
-
+def errors_per_stratum_count(y_true, y_pred, strata_level_name, summary_stat=np.mean, normalize_denominator=None):
+    strata = y_true.index.get_level_values(strata_level_name)
     errors = (y_true != y_pred)
     strata_uniq, strata_integer = np.unique(strata, return_inverse=True)
     n_errors = np.bincount(strata_integer, weights=errors)
@@ -12,4 +12,4 @@ def errors_per_stratum_count(y_true, y_pred, strata, normalize_denominator=None)
         count_factor = count_per_stratum / normalize_denominator
         n_errors = n_errors / count_factor
 
-    return n_errors
+    return summary_stat(n_errors)
