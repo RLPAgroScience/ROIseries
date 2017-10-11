@@ -21,8 +21,9 @@
 # TAF to TRF transformation
 import pandas as pd
 import numpy as np
-from sklearn.base import TransformerMixin
+from sklearn.base import BaseEstimator, TransformerMixin
 import calendar
+import ROIseries as rs
 
 
 def timeindex_from_colsuffix(df):
@@ -105,7 +106,7 @@ def reltime_from_absdate(DatetimeIndex):
         return reltime, freq
 
 
-class TAFtoTRF(TransformerMixin):
+class TAFtoTRF(BaseEstimator, TransformerMixin):
     # TODO: This transformer should be split up into multiple transformers!
     """
     Transform a DataFrame holding TAF to TRF
@@ -129,9 +130,9 @@ class TAFtoTRF(TransformerMixin):
     >>> p1 = make_pipeline(t1)
     >>> dfx = p1.fit_transform(df)
     """
-    def __init__(self, shift_dict, exclude=None):
+    def __init__(self, shift_dict, id_colname):
         self.shift_dict = shift_dict
-        self.exclude = exclude
+        self.id_colname = id_colname
 
     def fit(self, x, y=None):
         return self
@@ -160,31 +161,14 @@ class TAFtoTRF(TransformerMixin):
                 {'m1': 0, 'm2': -1, 'm3': -2, 'p1': 1, 'p2': 2, 'p3': 3}
             """
         df = x.copy()
+
+        rs.sub_routines.sort_index_columns_inplace(df)
+        df = df.unstack(self.id_colname)
+
         trf_label = 'trf_label'
 
-        # Make sure that the DataFrame is sorted
-        # - sorted DatetimeIndex: Required for correct shifting
-        # - sorted columns: required for MultiIndex slicing
-        for i in [0, 1]:
-            df.sort_index(axis=i, inplace=True, ascending=True)
-
-        # exclude and append
-        if self.exclude == None:
-            df_excluded = df.iloc[:, 0:0]
-        else:
-            df_excluded = df.loc[:, self.exclude]
-
-        df = df.drop(list(df_excluded.columns.values), axis=1)
-
-        df_excluded.columns = pd.MultiIndex.from_tuples([(i, k, '') for i, k in df_excluded.columns.values],
-                                                        names=df_excluded.columns.names + [trf_label])
-
-        # to realize the intuition that a negative shift results in referencing an
-        # earlier point in time, swap all signs
         shift_dict = {k: v * -1 for k, v in self.shift_dict.items()}
-
         shifted_dfs = []
-
         for k, v in shift_dict.items():
 
             # v == 0 makes shift return the same dataframe and not the desired copy
@@ -198,26 +182,16 @@ class TAFtoTRF(TransformerMixin):
             shifted_dfs.append(df_shifted)
 
         shifted_dfs = pd.concat(shifted_dfs)
+
+        rs.sub_routines.sort_index_columns_inplace(shifted_dfs)
+        shifted_dfs = shifted_dfs.stack(self.id_colname)
         df = shifted_dfs.unstack(trf_label)
 
-        return pd.concat([df, df_excluded], axis=1)
-
-
-class ReshapeDF(TransformerMixin):
-    """Apply various DataFrame transformations without changing the data"""
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, x, y=None):
-        df = x.copy()
-        df = df.stack(0)
-        df.columns = pd.Index([k + "_" + i if i != "" else k for k, i in df.columns.values],
-                               name='features')
-        # df.loc[:, 'class'] = np.where(pd.isnull(df.loc[:, 'class']), False, True)
-
-        df = df.reset_index(['reltime', 'doy_sin', 'doy_cos'])
-        return df
+        # indexing a smaller DataFrame (x) with a larger DataFrame's index (df.index) (both have unique indices),
+        # results in the smaller DataFrame being ?broadcasted? to the size of the larger. Where df.index is not in
+        # x.index nan rows added created. These should_not_exist! Therefore return only valid subset
+        # should_not_exist = (x.loc[df.index, :]).loc[df.drop(x.index).index, :]
+        return df.loc[x.index, :]
 
 def doy_circular(DatetimeIndex):
     """
