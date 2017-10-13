@@ -241,3 +241,34 @@ def doy_circular(DatetimeIndex):
     doy[~leap_bol] = 2 * np.pi * ((doy[~leap_bol]-1) / 365)
 
     return dict(zip(["doy_sin", "doy_cos"], [np.sin(doy), np.cos(doy)]))
+
+
+class DropCorrelated(BaseEstimator, TransformerMixin):
+    def __init__(self, x_corr, correlation_threshold, absolute_correlation=False):
+        self.x_corr = x_corr
+        self.correlation_threshold = correlation_threshold
+        self.absolute_correlation = absolute_correlation
+
+    def fit(self, x, y=None):
+        return self
+
+    def transform(self, x, y=None):
+
+        if self.absolute_correlation:
+            self.x_corr = (self.x_corr).abs()
+        n_vars = self.x_corr.shape[1]
+
+        # set the upper right half and diagonal of the correlation matrix to 0
+        (self.x_corr).iloc[rs.sub_routines.idx_corners(n_vars, 'up_right')] = 0
+
+        # get indices for sub-setting: rows must stay the same number!
+        var_idx = np.broadcast_to(np.arange(n_vars), (n_vars, n_vars)).transpose()
+
+        # get index of correlated variables
+        remove_arr = np.array(var_idx[(self.x_corr).get_values() > self.correlation_threshold])
+        remove_set = set(remove_arr[~np.isnan(remove_arr)])
+        keep = set(range(n_vars)) - remove_set
+        print("{} % where dropped with correlation_threshold of {}".format(round((len(remove_set)/n_vars)*100),
+                                                                           self.correlation_threshold))
+
+        return x.iloc[:, list(keep)].copy()
