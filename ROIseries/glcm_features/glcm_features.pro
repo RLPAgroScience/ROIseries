@@ -67,7 +67,7 @@
 ;-
 FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
     COMPILE_OPT idl2, HIDDEN
-    
+
     ; Check input
     IF N_ELEMENTS(glcm) EQ 0 THEN RETURN,"Please provide GLCM"
     IF N_ELEMENTS(feature_names) EQ 0 THEN RETURN,"Please provide at least one feature"
@@ -85,39 +85,33 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
     IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) THEN BEGIN
       bins=MAX(img,/NAN)-MIN(img,/NAN)+1
       ind=REBIN(INDGEN(bins,START=MIN(img,/NAN)),bins,bins)
+      glcm_mean = TOTAL(glcm*ind)
+      IF CONTAINS_ANY_RS(feature_names,["VAR","STD","COR"]) THEN BEGIN
+        glcm_var = TOTAL(glcm*((ind-glcm_mean)^2))
+      ENDIF
     ENDIF
+    
+    IF CONTAINS_ANY_RS(feature_names,["ASM","ENE"]) THEN asm = TOTAL(glcm^2)
     
     result=LIST()
     FOREACH f,feature_names DO BEGIN
       CASE f OF
-        "CON": result.Add,TOTAL(glcm*(weights)) ; Contrast
-        "DIS": result.Add,TOTAL(glcm*SQRT(weights)) ; Dissimilarity
-        "HOM": result.Add,TOTAL(glcm/(1+(weights))) ; Homogeneity == Inverse Difference Moment
-        "ASM": result.Add,TOTAL((glcm^2)) ; Angular Second Moment
-        "ENE": result.Add,SQRT(TOTAL((glcm^2))) ; Energy == Uniformity == SQRT(ASM)
+        "CON": result.Add,TOTAL(glcm * weights) ; Contrast
+        "DIS": result.Add,TOTAL(glcm * SQRT(weights)) ; Dissimilarity
+        "HOM": result.Add,TOTAL(glcm / (1 + weights)) ; Homogeneity == Inverse Difference Moment
+        "ASM": result.Add, asm ; Angular Second Moment
+        "ENE": result.Add,SQRT(asm) ; Energy == Uniformity == SQRT(ASM)
         "MAX": result.Add,MAX(glcm,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
         "ENT":BEGIN ; Entropy
-                weights=ALOG(glcm) ; this returns -inf if value=0, this needs to be set to 0 according to ucalgary:
-                weights[WHERE(~FINITE(weights,NAN=0))]=0; NAN: nan is igonred, 0: -/+ values are finite;
-                result.Add,TOTAL(glcm*weights)*(-1) ; according to paper after total, according to ucalgary before total
+                weights_ENT=ALOG(glcm) ; this returns -inf if value=0, this needs to be set to 0 according to ucalgary:
+                weights_ENT[WHERE(~FINITE(weights_ENT,NAN=0))]=0; NAN: nan is igonred, 0: -/+ values are finite;
+                result.Add,TOTAL(glcm*weights_ENT)*(-1) ; according to paper after total, according to ucalgary before total
               END
-              
-        "MEAN": result.Add,TOTAL(glcm*ind) ; Mean
-        "VAR":BEGIN ; Variance (depens on MEAN)
-                glcm_mean=TOTAL(glcm*ind)
-                result.Add,TOTAL(glcm*((ind-glcm_mean)^2))
-              END
-        "STD":BEGIN ; Standarddeviation (depends on mean and variance)
-                glcm_mean=TOTAL(glcm*ind)
-                glcm_var=TOTAL(glcm*((ind-glcm_mean)^2))
-                result.Add,SQRT(glcm_var)
-              END
-        "COR":BEGIN
-                glcm_mean=TOTAL(glcm*ind)
-                glcm_var=TOTAL(glcm*((ind-glcm_mean)^2))          
-                 ; simplified denominator (SQRT(glcm_var^2))=glcm_var ; this is true since: glcm_var can only be positive [glcm_var=TOTAL(glcm[0]*((ind-glcm_mean)^2))]
-                result.Add,TOTAL(glcm*(ROTATE(ind,1)-glcm_mean)*(ind-glcm_mean)/(glcm_var))
-              END
+        "MEAN": result.Add,glcm_mean
+        "VAR": result.Add,glcm_var
+        "STD": result.Add,SQRT(glcm_var)
+        ; simplified denominator (SQRT(glcm_var^2))=glcm_var ; this is true since: glcm_var can only be positive [glcm_var=TOTAL(glcm[0]*((ind-glcm_mean)^2))]
+        "COR": result.Add,TOTAL(glcm*(ROTATE(ind,1)-glcm_mean)*(ind-glcm_mean)/(glcm_var))
       ENDCASE
     ENDFOREACH
     
