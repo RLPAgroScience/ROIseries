@@ -53,11 +53,11 @@
 FUNCTION DETER_MINSIZE,x,NAME=name,CHANGE_GROUP=change_group
     COMPILE_OPT idl2, HIDDEN
     
-    tnx=TYPENAME(x)
-    unsigned_integers = ['BYTE','UINT','ULONG','ULONG64']
-    signed_integers = ['INT','LONG','LONG64']
-    floating_points = ['FLOAT','DOUBLE']
-    all_types = ['BYTE','UINT','INT','ULONG','LONG','FLOAT','ULONG64','LONG64','DOUBLE']
+    tnx=SIZE(x,/TYPE)
+    unsigned_integers = [1,12,13,15] ;['BYTE','UINT','ULONG','ULONG64']
+    signed_integers = [2,3,14];['INT','LONG','LONG64']
+    floating_points = [4,5];['FLOAT','DOUBLE']
+    all_types = [1,12,2,13,3,4,15,14,5];['BYTE','UINT','INT','ULONG','LONG','FLOAT','ULONG64','LONG64','DOUBLE']
     
     IF unsigned_integers.HasValue(tnx) THEN cas = unsigned_integers
     IF signed_integers.HasValue(tnx) THEN cas = signed_integers
@@ -65,11 +65,11 @@ FUNCTION DETER_MINSIZE,x,NAME=name,CHANGE_GROUP=change_group
     IF KEYWORD_SET(CHANGE_GROUP) THEN cas = all_types
     
     FOREACH t,cas DO BEGIN
-        IF SET_TYPE(x,t) EQ x THEN BEGIN
+        IF FIX(x,TYPE=t) EQ x THEN BEGIN
             IF KEYWORD_SET(NAME) THEN BEGIN
                 RETURN,t
             ENDIF ELSE BEGIN
-                RETURN,SET_TYPE(x,t)
+                RETURN,FIX(x,TYPE=t)
             ENDELSE
         ENDIF
     ENDFOREACH  

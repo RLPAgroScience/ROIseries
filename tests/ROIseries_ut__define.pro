@@ -21,19 +21,19 @@ FUNCTION ROIseries_ut :: TEST_DETER_MINSIZE
     COMPILE_OPT idl2, HIDDEN
     
     ; Unsigned integers
-    ASSERT,DETER_MINSIZE(ULONG(255),/NAME) EQ 'BYTE','ULONG(255) not converted to BYTE by deter_minsize'
-    ASSERT,DETER_MINSIZE(ULONG64(4294967295),/NAME) EQ 'ULONG','LONG64(4294967295) not converted to ULONG by deter_minsize'
+    ASSERT,DETER_MINSIZE(ULONG(255),/NAME) EQ 1,'ULONG(255) not converted to BYTE by deter_minsize'
+    ASSERT,DETER_MINSIZE(ULONG64(4294967295),/NAME) EQ 13,'LONG64(4294967295) not converted to ULONG by deter_minsize'
     
     ; Signed integers 
-    ASSERT,DETER_MINSIZE(LONG64(-32768),/NAME) EQ 'INT','LONG(-32768) not converted to INT by deter_minsize'
-    ASSERT,DETER_MINSIZE(LONG64(-2147483648),/NAME) EQ 'LONG','LONG64(21474836647) not converted to LONG by deter_minsize'
+    ASSERT,DETER_MINSIZE(LONG64(-32768),/NAME) EQ 2,'LONG(-32768) not converted to INT by deter_minsize'
+    ASSERT,DETER_MINSIZE(LONG64(-2147483648),/NAME) EQ 3,'LONG64(21474836647) not converted to LONG by deter_minsize'
     
     ; Floating points
-    ASSERT,DETER_MINSIZE(DOUBLE(1.0),/NAME) EQ 'FLOAT','DOUBLE(1.0) not converted to FLOAT by deter_minsize'
-    ASSERT,DETER_MINSIZE(DOUBLE(-10.0)^200,/NAME) EQ 'DOUBLE','DOUBLE(-10.0)^200 not kept as FLOAT by deter_minsize'
+    ASSERT,DETER_MINSIZE(DOUBLE(1.0),/NAME) EQ 4,'DOUBLE(1.0) not converted to FLOAT by deter_minsize'
+    ASSERT,DETER_MINSIZE(DOUBLE(-10.0)^200,/NAME) EQ 5,'DOUBLE(-10.0)^200 not kept as FLOAT by deter_minsize'
     
     ; Changing Groups
-    ASSERT,DETER_MINSIZE(DOUBLE(42.0),/NAME,/CHANGE_GROUP) EQ 'BYTE','DOUBLE(-42.0) was not converted to BYTE by deter_minsize, even though /CHANGE_GROUP was set'
+    ASSERT,DETER_MINSIZE(DOUBLE(42.0),/NAME,/CHANGE_GROUP) EQ 1,'DOUBLE(-42.0) was not converted to BYTE by deter_minsize, even though /CHANGE_GROUP was set'
     RETURN,1
 END
 

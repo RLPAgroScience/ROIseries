@@ -56,14 +56,14 @@ FUNCTION GLCM_WSDM,n,exponent
     
     ; Convert n to the datatype that is needed to store the maximum number that will occur
     type=DETER_MINSIZE(ULONG64(n)^exponent,/name)
-    n=SET_TYPE(n,type)
+    n=FIX(n,TYPE=type)
     
     ; create the wsdm
     ind=(INDGEN(n))^exponent
-    r1=MAKE_ARRAY(n,n,value=SET_TYPE(0,type))
+    r1=MAKE_ARRAY(n,n,value=FIX(0,TYPE=type))
     r2=r1
     FOR i=0,n-1 DO r1[i-1,i-1:n-1]=ind[0:-i]
-    r2=rotate(r1,2)
+    r2=ROTATE(r1,2)
     
     ; return the result
     RETURN,r1+r2

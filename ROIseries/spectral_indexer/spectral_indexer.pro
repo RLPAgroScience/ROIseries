@@ -74,7 +74,7 @@ FUNCTION SPECTRAL_INDEXER,Images,formula,DATATYPE_RESULT=datatype_result
     ; Input
     IF N_ELEMENTS(Images) EQ 0 THEN Message,"Please provide parameter 'images'"
     IF N_ELEMENTS(formula) EQ 0 THEN Message,"Please provide parameter 'formula'"
-    IF N_ELEMENTS(datatype_result) EQ 0 THEN datatype_result = "DOUBLE"
+    IF N_ELEMENTS(datatype_result) EQ 0 THEN datatype_result = 4
     
     ; Detailed input checking
     cas = CHECK_RASTERSERIES(Images,BANDS=bands,EXTENT=extent)
@@ -87,14 +87,14 @@ FUNCTION SPECTRAL_INDEXER,Images,formula,DATATYPE_RESULT=datatype_result
         'ListOfNumericArrays': BEGIN
                                    CASE bands OF
                                        1: BEGIN
-                                              R = Images.Map(Lambda(x,type:SET_TYPE(x,type)),datatype_result) 
+                                              R = Images.Map(Lambda(x,type:FIX(x,TYPE=type)),datatype_result) 
                                               temp = EXECUTE("result = "+formula)
                                           END
                                        ELSE: BEGIN
                                            result = LIST()
                                            R = LIST()
                                            FOREACH i,Images DO BEGIN &$
-                                               FOR k = 0,BANDS-1 DO R.add,SET_TYPE(REFORM(i[k,*,*]),datatype_result) &$
+                                               FOR k = 0,BANDS-1 DO R.add,FIX(REFORM(i[k,*,*]),TYPE=datatype_result) &$
                                                temp = EXECUTE("result.add,"+formula) &$
                                            ENDFOREACH
                                            END
@@ -102,22 +102,22 @@ FUNCTION SPECTRAL_INDEXER,Images,formula,DATATYPE_RESULT=datatype_result
                                END
         ;-----------------------------------------------------------------------------------------------------------------
         'SingleString':        BEGIN
-                                   x=SET_TYPE(READ_IMAGE(Images),datatype_result)
+                                   x=FIX(READ_IMAGE(Images),TYPE=datatype_result)
                                    R=LIST()
-                                   FOREACH k,[0:bands-1] DO R.add,SET_TYPE(REFORM(x[k,*,*]),datatype_result)
+                                   FOREACH k,[0:bands-1] DO R.add,FIX(REFORM(x[k,*,*]),TYPE=datatype_result)
                                    temp = EXECUTE("result="+formula)
                                END
         ;-----------------------------------------------------------------------------------------------------------------
         'NumericArray':        BEGIN
                                    R=LIST()                        
-                                   FOREACH k,[0:bands-1] DO R.add,SET_TYPE(REFORM(Images[k,*,*]),datatype_result)
+                                   FOREACH k,[0:bands-1] DO R.add,FIX(REFORM(Images[k,*,*]),TYPE=datatype_result)
                                    temp = EXECUTE("result="+formula)             
                                END
         ;-----------------------------------------------------------------------------------------------------------------
         ELSE:                  BEGIN
                                    IF (cas NE 'StringArray') AND (cas NE 'ListOfStrings') THEN MESSAGE,'This type of input "Images" is not supported.'
                                    image_list = list(images,/EXTRACT) ; if images are list already, nothing happens
-                                   image_list = image_list.map(LAMBDA(x,type:SET_TYPE(READ_IMAGE(x),type)),datatype_result)
+                                   image_list = image_list.map(LAMBDA(x,type:FIX(READ_IMAGE(x),TYPE=type)),datatype_result)
                                    CASE bands OF
                                        1:    BEGIN
                                                  R = image_list
@@ -128,7 +128,7 @@ FUNCTION SPECTRAL_INDEXER,Images,formula,DATATYPE_RESULT=datatype_result
                                                  result = LIST()
                                                  R = LIST()
                                                  FOREACH i,image_list DO BEGIN &$
-                                                     FOR k = 0,bands-1 DO R.add,SET_TYPE(REFORM(i[k,*,*]),datatype_result) &$
+                                                     FOR k = 0,bands-1 DO R.add,FIX(REFORM(i[k,*,*]),TYPE=datatype_result) &$
                                                      temp = EXECUTE("result.add,"+formula) &$
                                                  ENDFOREACH
                                              END
