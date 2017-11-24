@@ -140,19 +140,8 @@ FUNCTION HIST_2D_NAN, img_1, img_2
     IF N_ELEMENTS(img_2) EQ 0 THEN MESSAGE,"Please supply img_2"
 
     ; Get the absolute min and max from both input images
-    IF TOTAL(FINITE(img_1)) EQ 0 THEN BEGIN
-        img_min = MIN(img_2,/NAN)
-        img_max = MAX(img_2,/NAN)
-    ENDIF ELSE BEGIN
-        IF TOTAL(FINITE(img_2)) EQ 0 THEN BEGIN
-            img_min = MIN(img_1,/NAN)
-            img_max = MAX(img_1,/NAN)
-        ENDIF ELSE BEGIN
-            img_min= MIN(img_1,/NAN) LE MIN(img_2,/NAN) ? MIN(img_1,/NAN):MIN(img_2,/NAN)
-            img_max= MAX(img_1,/NAN) GE MAX(img_2,/NAN) ? MAX(img_1,/NAN):MAX(img_2,/NAN)
-        ENDELSE
-    ENDELSE
-        
+    img_min = MIN([img_1,img_2],/NAN,MAX=img_max)
+    
     ; HIST_2D does not support NaN values:
     ; => find positions of non finite values in either input array and set those positions to max+1 
     non_finite = WHERE(~(FINITE(img_1) AND FINITE(img_2)))

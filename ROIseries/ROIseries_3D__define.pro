@@ -139,8 +139,7 @@ PRO ROIseries_3D :: XVOLUME,ID,REVERSE=reverse
     ; Flip immage along horizontal axis
     IF KEYWORD_SET(REVERSE) THEN data = REVERSE(data,2)
     
-    min=min(data,/NAN)
-    max=max(data,/NAN)
+    min=min(data,/NAN,MAX=max)
     xnorm=BYTE((((data-min)/(max-min)))*255) ; scale to 0 - 255
     XVOLUME,xnorm,SCALE=[0.8, 0.8, 2.2]
 END

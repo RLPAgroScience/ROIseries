@@ -54,8 +54,7 @@ FUNCTION ROIseries_1D :: normalize
     dat=((self.data).values()).ToArray()
     
     FOR I=0,(N_ELEMENTS(dat[*,0])-1) DO BEGIN
-        min=MIN(dat[I,*],/NAN)
-        max=MAX(dat[I,*],/NAN)
+        min=MIN(dat[I,*],/NAN,MAX=max)
         normal=(dat[I,*]-min)/(max-min)
         (self.data)[keys[I]]=REFORM(normal) ; REFORM to eliminate empty dimensions
     ENDFOR
