@@ -83,8 +83,8 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
     
     ; Precalculations for "Descriptive Stats Group"
     IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) THEN BEGIN
-      bins=MAX(img,/NAN)-MIN(img,/NAN)+1
-      ind=REBIN(INDGEN(bins,START=MIN(img,/NAN)),bins,bins)
+      bins=MAX(img,/NAN,MIN=minimum) - minimum+1
+      ind=REBIN(INDGEN(bins,START=minimum),bins,bins)
       glcm_mean = TOTAL(glcm*ind)
       IF CONTAINS_ANY_RS(feature_names,["VAR","STD","COR"]) THEN BEGIN
         glcm_var = TOTAL(glcm*((ind-glcm_mean)^2))
@@ -103,9 +103,10 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
         "ENE": result.Add,SQRT(asm) ; Energy == Uniformity == SQRT(ASM)
         "MAX": result.Add,MAX(glcm,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
         "ENT":BEGIN ; Entropy
-                weights_ENT=ALOG(glcm) ; this returns -inf if value=0, this needs to be set to 0 according to ucalgary:
-                weights_ENT[WHERE(~FINITE(weights_ENT,NAN=0))]=0; NAN: nan is igonred, 0: -/+ values are finite;
-                result.Add,TOTAL(glcm*weights_ENT)*(-1) ; according to paper after total, according to ucalgary before total
+                ; 0 in glcm returns -inf in ALOG, which should be set to 0 according to ucalgary and therefore ignored TOTAL(0*weight)==0
+                ; This has a huge performance benefit as well, as ALOG seems to work slow on large arrays.
+                glcm_non_zero = glcm[WHERE(glcm NE 0)]
+                result.Add, -1 * TOTAL(glcm_non_zero * ALOG(glcm_non_zero))
               END
         "MEAN": result.Add,glcm_mean
         "VAR": result.Add,glcm_var
