@@ -166,3 +166,52 @@ def test_errors_per_stratum_count_normalize(metrics):
                                                            normalize_denominator=normalize_denominator)
 
     assert n_errors == normalized_errors
+
+
+def test_idx_corners():
+    size = 3
+    arr = np.zeros((size, size))
+
+    directions_results = {
+        'up_right': np.array([
+            [1, 1, 1],
+            [0, 1, 1],
+            [0, 0, 1]]),
+
+        'down_right': np.array([
+            [0, 0, 1],
+            [0, 1, 1],
+            [1, 1, 1]]),
+
+        'down_left': np.array([
+            [1, 0, 0],
+            [1, 1, 0],
+            [1, 1, 1]]),
+
+        'up_left': np.array([
+            [1, 1, 1],
+            [1, 1, 0],
+            [1, 0, 0]])
+    }
+
+    for direction, result in directions_results.items():
+        temp = arr.copy()
+        temp[rs.sub_routines.idx_corners(size, direction)] = 1
+        np.testing.assert_array_equal(temp, result)
+
+
+def test_drop_correlated():
+    ten = np.arange(10)
+    ten_reverse = ten[::-1]
+    ten_drop = ten.copy()
+    ten_drop[3:6] = [5, 4, 3]
+    arr = (np.array([ten, ten_reverse, ten_drop])).transpose()
+    df = pd.DataFrame(np.concatenate([arr, arr], axis=1))
+
+    transformer = rs.feature_transformers.DropCorrelated(df.corr(), 0.9, absolute_correlation=False)
+    result = transformer.fit_transform(df)
+    pd.testing.assert_frame_equal(result, pd.DataFrame(np.array([ten, ten_reverse]).transpose()))
+
+    transformer = rs.feature_transformers.DropCorrelated(df.corr(), 0.9, absolute_correlation=True)
+    result = transformer.fit_transform(df)
+    pd.testing.assert_frame_equal(result, pd.DataFrame(np.array([ten]).transpose()))
