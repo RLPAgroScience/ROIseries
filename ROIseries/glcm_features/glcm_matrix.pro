@@ -92,54 +92,55 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
     ; -> generate 2D histogram, 
     ; -> make it symmetrical (add opposite directions)
     ; -> normalize it 
+    
     FOREACH i,dir DO BEGIN
         CASE i OF
             
             ; east <-> west
             '0': BEGIN 
                 IF cas EQ 1 || cas EQ 3 THEN BEGIN 
-                    res_list.Add,!Values.D_NAN
+                    res_list.Add,!Values.F_NAN
                 ENDIF ELSE BEGIN
                     img_s1 = (shift(img_in,[-1,0]))[0:-2,*]
                     img_c=img_in[0:-2,*]
                     h2d=HIST_2D_NAN(img_s1,img_c) + HIST_2D_NAN(img_c,img_s1) 
-                    res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
+                    res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                 ENDELSE
             END
         
             ; north <-> south
             '90': BEGIN
                 IF cas EQ 1 || cas EQ 4 THEN BEGIN
-                    res_list.Add,!Values.D_NaN
+                    res_list.Add,!Values.F_NaN
                 ENDIF ELSE BEGIN
                     img_s1 = (shift(img_in,[0,-1]))[*,0:-2]
                     img_c = img_in[*,0:-2]
                     h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
-                    res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
+                    res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                 ENDELSE 
             END
        
            ; northeast <-> southwest
            '45': BEGIN
                IF cas NE 2 THEN BEGIN   
-                   res_list.Add,!Values.D_NaN
+                   res_list.Add,!Values.F_NaN
                ENDIF ELSE BEGIN
                    img_s1 = (shift(img_in,[1,-1]))[1:*,0:-2]
                    img_c = img_in[1:*,0:-2]
                    h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
-                   res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
+                   res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                ENDELSE
            END
            
            ; northwest <-> southeast
            '135': BEGIN
                IF cas NE 2 THEN BEGIN
-                 res_list.Add,!Values.D_NaN
+                 res_list.Add,!Values.F_NaN
                ENDIF ELSE BEGIN
                  img_s1 = (shift(img_in,[-1,-1]))[0:-2,0:-2]
                  img_c = img_in[0:-2,0:-2] ; bug corrected. Used to be: img_in[1:*,0:-2] 
                  h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
-                 res_list.Add,(h2d / DOUBLE(TOTAL(h2d)))
+                 res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                ENDELSE
            END
         

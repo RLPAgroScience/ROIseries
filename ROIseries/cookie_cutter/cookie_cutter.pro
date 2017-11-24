@@ -107,7 +107,7 @@ FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMU
     IF N_ELEMENTS(spectral_indexer_formula) EQ 0 AND N_ELEMENTS(RASTERSERIES) EQ 1 THEN ImageArray=TRANSPOSE(ImageArray,[1,2,0]) ; NEU
     
     ; If one image is provided with multiple bands and spectral_indexer_formula is present than apply spectral_indexer
-    IF (N_ELEMENTS(spectral_indexer_formula) NE 0) AND (N_ELEMENTS(RASTERSERIES) EQ 1) AND (bands GT 1) THEN ImageArray=SPECTRAL_INDEXER(ImageArray,spectral_indexer_formula)
+    IF (N_ELEMENTS(spectral_indexer_formula) NE 0) AND (N_ELEMENTS(RASTERSERIES) EQ 1) AND (bands GT 1) THEN ImageArray=SPECTRAL_INDEXER(ImageArray,spectral_indexer_formula,DATATYPE_RESULT="FLOAT")
     
     print,"images loaded"
     

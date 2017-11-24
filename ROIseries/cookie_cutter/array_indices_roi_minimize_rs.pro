@@ -71,9 +71,9 @@ FUNCTION ARRAY_INDICES_ROI_MINIMIZE_RS,Index,PUMPUP=pumpup
     
         ; Add the template array to the list and if PUMPuP was specified create a 3D array with the last dimension = pumpup
         IF N_ELEMENTS(PUMPUP) NE 0 THEN BEGIN
-            Red_ArrayL=RANGE.MAP(LAMBDA(x,y:MAKE_ARRAY([x,y],VALUE=!Values.D_NAN)),PUMPUP)
+            Red_ArrayL=RANGE.MAP(LAMBDA(x,y:MAKE_ARRAY([x,y],VALUE=!Values.F_NAN)),PUMPUP)
         ENDIF ELSE BEGIN
-            Red_ArrayL=RANGE.MAP(LAMBDA(x:MAKE_ARRAY(x,VALUE=!Values.D_NAN)))
+            Red_ArrayL=RANGE.MAP(LAMBDA(x:MAKE_ARRAY(x,VALUE=!Values.F_NAN)))
         ENDELSE
     
         ; Create the actual reduced index
@@ -98,9 +98,9 @@ FUNCTION ARRAY_INDICES_ROI_MINIMIZE_RS,Index,PUMPUP=pumpup
         ; template array
         Range=[1,1]
         IF N_ELEMENTS(PUMPUP) NE 0 THEN BEGIN
-            Red_ArrayL_Irr=LIST((MAKE_ARRAY([RANGE,PUMPUP],VALUE=!Values.D_NAN)),LENGTH=N_ELEMENTS(IndexIrregular))
+            Red_ArrayL_Irr=LIST((MAKE_ARRAY([RANGE,PUMPUP],VALUE=!Values.F_NAN)),LENGTH=N_ELEMENTS(IndexIrregular))
         ENDIF  ELSE BEGIN 
-            Red_ArrayL_Irr=LIST((REFORM(MAKE_ARRAY(RANGE,VALUE=!Values.D_NAN),1,1)),LENGTH=N_ELEMENTS(IndexIrregular))
+            Red_ArrayL_Irr=LIST((REFORM(MAKE_ARRAY(RANGE,VALUE=!Values.F_NAN),1,1)),LENGTH=N_ELEMENTS(IndexIrregular))
         ENDELSE
         
         IF N_ELEMENTS(PUMPUP) NE 0 THEN BEGIN
