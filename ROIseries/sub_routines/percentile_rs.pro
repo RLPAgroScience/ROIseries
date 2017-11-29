@@ -56,7 +56,7 @@ FUNCTION PERCENTILE_RS,array,percentage
     reformed = REFORM(array,(SIZE(array))[-1])
     reformed_finite = reformed[WHERE(FINITE(reformed))]
     sorted = reformed_finite[sort(reformed_finite)]
-    ordinal_rank = CEIL((percentage/100.0)*N_ELEMENTS(sorted))  
+    ordinal_rank = CEIL((percentage/100.0)*N_ELEMENTS(sorted))-1 ; -1 because rank 1 = index 0!
     RETURN,sorted[ordinal_rank]
 
 END
