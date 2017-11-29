@@ -53,17 +53,17 @@ END
 FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     COMPILE_OPT idl2, HIDDEN
     ON_ERROR,self.on_error
-
-    RS1D = ROIseries_1D() 
+    
+    RS1D = ROIseries_1D()
+    RS1D.no_save = self.no_save 
     RS1D.parents = self.parents
     RS1D.legacy = self.legacy
     RS1D.DB = self.db
     RS1D.id = self.id
     RS1D.time = self.time
     RS1D.class = self.class
-    RS1D.no_save = self.no_save
     RS1D.unit = self.unit
-    RS1D.data=RS3D_SPATIAL_MIXER(self.data,statistics_type)
+    RS1D.data=RS3D_SPATIAL_MIXER(self,statistics_type)
     RS1D.savetodb,"spatial_mixer_"+statistics_type
     RETURN,RS1D
 END
