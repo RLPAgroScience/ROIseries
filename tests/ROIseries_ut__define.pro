@@ -129,13 +129,13 @@ FUNCTION ROIseries_ut :: TEST_GLCM
     ; horizontal features
     features_validation_horizontal_names = ["CON","DIS","COR","MEAN","HOM","ASM","VAR","ENT"] ; ENE, STD and MAX are not on website
     features_validation_horizontal_values = [0.586,0.418,0.7182362,1.292,0.804,0.145,1.039067,2.0951]
-    features_horizontal = (GLCM_FEATURES(glcm_horizontal,features_validation_horizontal_names, IMG=img)).ToArray()
+    features_horizontal = (GLCM_FEATURES(glcm_horizontal,features_validation_horizontal_names)).ToArray()
     horizontal_difference = ABS(features_horizontal - features_validation_horizontal_values) GT 0.01
 
     ; vertical features
     features_validation_vertical_names = ["DIS","MEAN","VAR"]
     features_validation_vertical_values = [0.664,1.162,0.969705]
-    features_vertical = (GLCM_FEATURES(GLCM_MATRIX(img,90),features_validation_vertical_names,IMG=img)).ToArray()
+    features_vertical = (GLCM_FEATURES(GLCM_MATRIX(img,90),features_validation_vertical_names)).ToArray()
     vertical_difference = ABS(features_vertical-features_validation_vertical_values) GT 0.01
     
     ; normalization and binsize

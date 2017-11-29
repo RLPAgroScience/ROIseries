@@ -65,54 +65,56 @@
 ; :Author:
 ;     Niklas Keck ("niklas_keck'use at instead'gmx.de").replace("'use at instead'","@")
 ;-
-FUNCTION GLCM_FEATURES,GLCM,feature_names,IMG=img
+FUNCTION GLCM_FEATURES,GLCM,feature_names
     COMPILE_OPT idl2, HIDDEN
-
+    
+    n = (SIZE(glcm,/DIMENSIONS))[0]
     ; Check input
-    IF N_ELEMENTS(glcm) EQ 0 THEN RETURN,"Please provide GLCM"
+    IF n EQ 0 THEN RETURN,"Please provide GLCM"
     IF N_ELEMENTS(feature_names) EQ 0 THEN RETURN,"Please provide at least one feature"
     IF TOTAL(FINITE(glcm)) LT 1 THEN RETURN,(REPLICATE(!Values.D_NAN ,N_ELEMENTS(feature_names))).ToList(/NO_COPY) ; Check if GLCM was successfully calculated if not (e.g. for 1D Array) return D_NAN
-    IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) AND N_ELEMENTS(IMG) EQ 0 THEN RETURN,"To calculate 'MEAN','VAR','STD' or 'COR' the original array/image needs to be provided" 
+    
+    ; GLCM features can be calculated on the subset of GLCM that excludes any '0' entries
+    ; Consider e.g. TOTAL(glcm*...) this is a very common case for GLCM featrue calculation and is invariant to the number of glcm entries being 0
+    glcm_non_0_indices = WHERE(glcm NE 0)
+    glcm_non_0 = glcm[glcm_non_0_indices]
     
     ; Precalculations for "Contrast Group"
     superset=[feature_names,["CON","DIS","HOM"]]
     IF N_ELEMENTS(UNIQ(superset,SORT(superset))) LT N_ELEMENTS(superset) THEN BEGIN ; check if the sets feature_names and ["CON","DIS","HOM"] have common elements 
-      n = (SIZE(glcm,/DIMENSIONS))[0]
-      weights = GLCM_WSDM(n,2)
+      weights = (GLCM_WSDM(n,2))[glcm_non_0_indices]
     ENDIF
     
     ; Precalculations for "Descriptive Stats Group"
     IF CONTAINS_ANY_RS(feature_names,["MEAN","VAR","STD","COR"]) THEN BEGIN
-      bins=MAX(img,/NAN,MIN=minimum) - minimum+1
-      ind=REBIN(INDGEN(bins,START=minimum),bins,bins)
-      glcm_mean = TOTAL(glcm*ind)
+      ind=REBIN(INDGEN(n),n,n)
+      ind_rot = (ROTATE(ind, 1))[glcm_non_0_indices]
+      ind = ind[glcm_non_0_indices]
+      
+      glcm_mean = TOTAL(glcm_non_0*ind)
       IF CONTAINS_ANY_RS(feature_names,["VAR","STD","COR"]) THEN BEGIN
-        glcm_var = TOTAL(glcm*((ind-glcm_mean)^2))
+        glcm_var = TOTAL(glcm_non_0*((ind-glcm_mean)^2))
       ENDIF
     ENDIF
     
-    IF CONTAINS_ANY_RS(feature_names,["ASM","ENE"]) THEN asm = TOTAL(glcm^2)
+    IF CONTAINS_ANY_RS(feature_names,["ASM","ENE"]) THEN asm = TOTAL(glcm_non_0^2)
     
     result=LIST()
+    
     FOREACH f,feature_names DO BEGIN
       CASE f OF
-        "CON": result.Add,TOTAL(glcm * weights) ; Contrast
-        "DIS": result.Add,TOTAL(glcm * SQRT(weights)) ; Dissimilarity
-        "HOM": result.Add,TOTAL(glcm / (1 + weights)) ; Homogeneity == Inverse Difference Moment
+        "CON": result.Add,TOTAL(glcm_non_0 * weights) ; Contrast
+        "DIS": result.Add,TOTAL(glcm_non_0 * SQRT(weights)) ; Dissimilarity
+        "HOM": result.Add,TOTAL(glcm_non_0 / (1 + weights)) ; Homogeneity == Inverse Difference Moment
         "ASM": result.Add, asm ; Angular Second Moment
         "ENE": result.Add,SQRT(asm) ; Energy == Uniformity == SQRT(ASM)
-        "MAX": result.Add,MAX(glcm,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
-        "ENT":BEGIN ; Entropy
-                ; 0 in glcm returns -inf in ALOG, which should be set to 0 according to ucalgary and therefore ignored TOTAL(0*weight)==0
-                ; This has a huge performance benefit as well, as ALOG seems to work slow on large arrays.
-                glcm_non_zero = glcm[WHERE(glcm NE 0)]
-                result.Add, -1 * TOTAL(glcm_non_zero * ALOG(glcm_non_zero))
-              END
+        "MAX": result.Add,MAX(glcm_non_0,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
+        "ENT":result.Add, -1 * TOTAL(glcm_non_0 * ALOG(glcm_non_0))
         "MEAN": result.Add,glcm_mean
         "VAR": result.Add,glcm_var
         "STD": result.Add,SQRT(glcm_var)
         ; simplified denominator (SQRT(glcm_var^2))=glcm_var ; this is true since: glcm_var can only be positive [glcm_var=TOTAL(glcm[0]*((ind-glcm_mean)^2))]
-        "COR": result.Add,TOTAL(glcm*(ROTATE(ind,1)-glcm_mean)*(ind-glcm_mean)/(glcm_var))
+        "COR": result.Add,TOTAL(glcm_non_0*(ind_rot-glcm_mean)*(ind-glcm_mean)/(glcm_var))
       ENDCASE
     ENDFOREACH
     
