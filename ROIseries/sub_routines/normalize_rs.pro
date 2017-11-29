@@ -47,7 +47,7 @@ FUNCTION NORMALIZE_RS,array,new_min_max
     array_in = array
     
     IF N_ELEMENTS(array_in) EQ 0 THEN MESSAGE, "Please provide 'array'"
-    array_in = DOUBLE(array_in)
+    array_in = FLOAT(array_in)
     IF N_ELEMENTS(new_min_max) NE 2 THEN MESSAGE,"Please provide 'new_min_max' array, form: [new_min,new_max]"
     
     new_range = ABS(new_min_max[0] - new_min_max[1])
