@@ -103,7 +103,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                 ENDIF ELSE BEGIN
                     img_s1 = (shift(img_in,[-1,0]))[0:-2,*]
                     img_c=img_in[0:-2,*]
-                    h2d=HIST_2D_NAN(img_s1,img_c) + HIST_2D_NAN(img_c,img_s1) 
+                    h2_temp = HIST_2D_NAN(img_s1,img_c)
+                    h2d = h2_temp + TRANSPOSE(h2_temp)
                     res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                 ENDELSE
             END
@@ -115,7 +116,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                 ENDIF ELSE BEGIN
                     img_s1 = (shift(img_in,[0,-1]))[*,0:-2]
                     img_c = img_in[*,0:-2]
-                    h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
+                    h2_temp = HIST_2D_NAN(img_s1,img_c)
+                    h2d = h2_temp + TRANSPOSE(h2_temp)
                     res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                 ENDELSE 
             END
@@ -127,7 +129,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                ENDIF ELSE BEGIN
                    img_s1 = (shift(img_in,[1,-1]))[1:*,0:-2]
                    img_c = img_in[1:*,0:-2]
-                   h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
+                   h2_temp = HIST_2D_NAN(img_s1,img_c)
+                   h2d = h2_temp + TRANSPOSE(h2_temp)
                    res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                ENDELSE
            END
@@ -139,7 +142,8 @@ FUNCTION GLCM_MATRIX,img,dir,NORMALIZE_RS_NEW_MIN_MAX=normalize_rs_new_min_max
                ENDIF ELSE BEGIN
                  img_s1 = (shift(img_in,[-1,-1]))[0:-2,0:-2]
                  img_c = img_in[0:-2,0:-2] ; bug corrected. Used to be: img_in[1:*,0:-2] 
-                 h2d = hist_2D_NAN(img_s1,img_c) + hist_2D_NAN(img_c,img_s1)
+                 h2_temp = HIST_2D_NAN(img_s1,img_c)
+                 h2d = h2_temp + TRANSPOSE(h2_temp)
                  res_list.Add,(h2d / FLOAT(TOTAL(h2d)))
                ENDELSE
            END
