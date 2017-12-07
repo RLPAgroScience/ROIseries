@@ -68,11 +68,14 @@
 FUNCTION GLCM_FEATURES,GLCM,feature_names
     COMPILE_OPT idl2, HIDDEN
     
-    n = (SIZE(glcm,/DIMENSIONS))[0]
+    n = (SIZE(glcm))[2]
     ; Check input
-    IF n EQ 0 THEN RETURN,"Please provide GLCM"
-    IF N_ELEMENTS(feature_names) EQ 0 THEN RETURN,"Please provide at least one feature"
-    IF TOTAL(FINITE(glcm)) LT 1 THEN RETURN,(REPLICATE(!Values.D_NAN ,N_ELEMENTS(feature_names))).ToList(/NO_COPY) ; Check if GLCM was successfully calculated if not (e.g. for 1D Array) return D_NAN
+    IF n EQ 0 THEN MESSAGE,"Please provide GLCM"
+    IF N_ELEMENTS(feature_names) EQ 0 THEN MESSAGE,"Please provide at least one feature"
+    
+    ; Check if GLCM was successfully calculated if not (e.g. for 1D Array) return D_NAN
+    result=MAKE_ARRAY(N_ELEMENTS(feature_names),VALUE=!Values.F_NAN)
+    IF TOTAL(FINITE(glcm)) LT 1 THEN RETURN, result
     
     ; GLCM features can be calculated on the subset of GLCM that excludes any '0' entries
     ; Consider e.g. TOTAL(glcm*...) this is a very common case for GLCM featrue calculation and is invariant to the number of glcm entries being 0
@@ -99,23 +102,24 @@ FUNCTION GLCM_FEATURES,GLCM,feature_names
     
     IF CONTAINS_ANY_RS(feature_names,["ASM","ENE"]) THEN asm = TOTAL(glcm_non_0^2)
     
-    result=LIST()
     
+    c=0
     FOREACH f,feature_names DO BEGIN
       CASE f OF
-        "CON": result.Add,TOTAL(glcm_non_0 * weights) ; Contrast
-        "DIS": result.Add,TOTAL(glcm_non_0 * SQRT(weights)) ; Dissimilarity
-        "HOM": result.Add,TOTAL(glcm_non_0 / (1 + weights)) ; Homogeneity == Inverse Difference Moment
-        "ASM": result.Add, asm ; Angular Second Moment
-        "ENE": result.Add,SQRT(asm) ; Energy == Uniformity == SQRT(ASM)
-        "MAX": result.Add,MAX(glcm_non_0,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
-        "ENT":result.Add, -1 * TOTAL(glcm_non_0 * ALOG(glcm_non_0))
-        "MEAN": result.Add,glcm_mean
-        "VAR": result.Add,glcm_var
-        "STD": result.Add,SQRT(glcm_var)
+        "CON": result[c] = TOTAL(glcm_non_0 * weights) ; Contrast
+        "DIS": result[c] = TOTAL(glcm_non_0 * SQRT(weights)) ; Dissimilarity
+        "HOM": result[c] = TOTAL(glcm_non_0 / (1 + weights)) ; Homogeneity == Inverse Difference Moment
+        "ASM": result[c] =  asm ; Angular Second Moment
+        "ENE": result[c] = SQRT(asm) ; Energy == Uniformity == SQRT(ASM)
+        "MAX": result[c] = MAX(glcm_non_0,/NAN) ; Maximum probability. Side Note: Not commonly implemented since actual GLCM is not computed in most software packages.
+        "ENT":result[c] =  -1 * TOTAL(glcm_non_0 * ALOG(glcm_non_0))
+        "MEAN": result[c] = glcm_mean
+        "VAR": result[c] = glcm_var
+        "STD": result[c] = SQRT(glcm_var)
         ; simplified denominator (SQRT(glcm_var^2))=glcm_var ; this is true since: glcm_var can only be positive [glcm_var=TOTAL(glcm[0]*((ind-glcm_mean)^2))]
-        "COR": result.Add,TOTAL(glcm_non_0*(ind_rot-glcm_mean)*(ind-glcm_mean)/(glcm_var))
+        "COR": result[c] = TOTAL(glcm_non_0*(ind_rot-glcm_mean)*(ind-glcm_mean)/(glcm_var))
       ENDCASE
+      c++
     ENDFOREACH
     
     RETURN,result
