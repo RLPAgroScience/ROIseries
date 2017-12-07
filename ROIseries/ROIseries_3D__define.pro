@@ -55,7 +55,7 @@ FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     ON_ERROR,self.on_error
     
     RS1D = ROIseries_1D()
-    RS1D.no_save = self.no_save 
+    RS1D.no_save = self.no_save
     RS1D.parents = self.parents
     RS1D.legacy = self.legacy
     RS1D.DB = self.db
@@ -63,8 +63,12 @@ FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     RS1D.time = self.time
     RS1D.class = self.class
     RS1D.unit = self.unit
-    RS1D.data=RS3D_SPATIAL_MIXER(self,statistics_type)
+    
+    result = RS3D_SPATIAL_MIXER(self,statistics_type)
+    RS1D.data = result[0]
+    RS1D.time = result[1]
     RS1D.savetodb,"spatial_mixer_"+statistics_type
+    
     RETURN,RS1D
 END
 

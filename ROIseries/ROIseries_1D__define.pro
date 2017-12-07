@@ -24,6 +24,7 @@ FUNCTION ROIseries_1D :: plot,_REF_EXTRA=e;ID=id,FORMAT=format,PATH=path,GROUNDT
     COMPILE_OPT idl2, HIDDEN
     ON_ERROR,self.on_error
     
+    IF TYPENAME(self.time[0]) EQ 'STRING' THEN MESSAGE,"No plot method implemented yet for feature names in time dimension"
     IF N_ELEMENTS(self.time) EQ 0 THEN MESSAGE,"Please add time attribute first"
     IF N_ELEMENTS(self.unit) EQ 0 THEN MESSAGE,"Plaase add [x,y] unit attribute first"
     
@@ -50,6 +51,7 @@ FUNCTION ROIseries_1D :: normalize
     COMPILE_OPT idl2, HIDDEN
     ON_ERROR,self.on_error
     
+    IF TYPENAME(self.time[0]) EQ 'STRING' THEN MESSAGE,"Normalizing with feature names in time dimension impossible"
     keys=((self.data).keys()).ToArray()
     dat=((self.data).values()).ToArray()
     
@@ -68,6 +70,8 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
     COMPILE_OPT idl2, HIDDEN
     ON_ERROR,self.on_error
     
+    IF TYPENAME(self.time[0]) EQ 'STRING' || TYPENAME(other_object.time) EQ 'STRING' THEN MESSAGE,"Interpolation with feature names in time dimension impossible"
+    
     ; Get Old (SELF) and new(OTHER) time Values
     self.data=RS_interpolate_to((self.time).ToArray(),(other_object.time).ToArray(),self.data)
     
@@ -81,13 +85,42 @@ PRO ROIseries_1D :: interpolate_to,other_object ;Extra/Intra Ultrapolate the cur
     self->savetodb,"InterpolatedTO_"+(other_object.id)
 END
 
-; saves the features per time step and roi to a csv.
-FUNCTION ROIseries_1D :: features_to_csv,function_names,CSV_PATH=csv_path
-    COMPILE_OPT idl2, HIDDEN
-    ON_ERROR,self.on_error
+FUNCTION ROIseries_1D :: temporal_mixer,TYPE
+    ; This function should: summarize the temporal dimension into 1 number
+    ; If multiple TYPE are supplied, then data has multiple values per id and
+    ; time stores the individual types (cp. rs2d_spatial_mixer)
+    MESSAGE,"Not implemented yet"
+    IF TYPENAME(self.time[0]) EQ 'STRING' THEN MESSAGE,'This object has no temporal information anymore'
+    RETURN,1
+END
+
+
+FUNCTION ROIseries_1D :: book_keeper,CSV_PATH=csv_path
+    ; This function should have one and only one objective: Write features to csv:
+    ; => If time is still existant: treat it as raw writing (..._time as required by current implementation in python
+    IF N_ELEMENTS(csv_path) EQ 0 THEN csv_path = FILEPATH(self.id+"_features_"+(TIMESTAMP()).replace(":","-")+".csv",ROOT_DIR=self.db,SUBDIRECTORY=['features'])
+    IF FILE_TEST(FILE_DIRNAME(csv_path),/DIRECTORY) EQ 0 THEN FILE_MKDIR,FILE_DIRNAME(csv_path)
     
-    path = RS1D_features_to_csv(self,function_names,CSV_PATH=csv_path)
-    RETURN,path
+    ; this works, but procuces rows for each feature and not each object!
+    valarr = (self.data.values()).toarray(/TRANSPOSE)
+    keyarr = (self.data.keys()).toarray()
+    time = self.time.toarray()
+    
+    ; cp.:http://www.idlcoyote.com/tips/csv_file.html
+    ; F0, 0 is width for natural width 
+    ; using format in STRING magically flattens the array, which is not wanted, so reform it to original size!
+    str_arr = REFORM((STRING(valarr,FORMAT="(F0.0)")),SIZE(valarr,/DIMENSIONS))
+    data = [REFORM(keyarr,1,N_ELEMENTS(keyarr)),str_arr]
+    col_lenght = (SIZE(data,/DIMENSIONS))[0]
+    data[0:col_lenght-2,*] =data[0:col_lenght-2,*]+"," 
+    
+    time_to_write = ["id,",self.id+"_"+[time[0:-2]+",",time[-1]]]
+    OPENW,1,csv_path,width=MAX([MAX(STRLEN(STRJOIN(data," "))),MAX(STRLEN(STRJOIN(time_to_write," ")))])
+    PRINTF,1,time_to_write
+    PRINTF,1,data
+    FREE_LUN,1
+    
+    RETURN,1
 END
 
 ;====================== OBJECT DEFINITION =====================================================================
