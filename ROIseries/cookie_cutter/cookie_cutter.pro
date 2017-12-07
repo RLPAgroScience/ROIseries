@@ -73,8 +73,10 @@ END
 ; :Author:
 ;     Niklas Keck ("niklas_keck'use at instead'gmx.de").replace("'use at instead'","@")
 ;-
-FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling 
+FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling,TYPE=type  
     COMPILE_OPT idl2, HIDDEN
+    
+    IF type EQ 'ROISERIES_1D' THEN MESSAGE,'ROIseries_1D objects are not supported by the cookie_cutter" 
     
     ; =================== CHECK AND PREPARE INPUT IMAGES: Aim: One 3D Array =====================================================================================
     ; Check preconditions: Same size and dimensions for each raster 
@@ -108,6 +110,10 @@ FUNCTION COOKIE_CUTTER,SHAPEFILE,ID_COL_NAME,RASTERSERIES,SPECTRAL_INDEXER_FORMU
     
     ; If one image is provided with multiple bands and spectral_indexer_formula is present than apply spectral_indexer
     IF (N_ELEMENTS(spectral_indexer_formula) NE 0) AND (N_ELEMENTS(RASTERSERIES) EQ 1) AND (bands GT 1) THEN ImageArray=SPECTRAL_INDEXER(ImageArray,spectral_indexer_formula,DATATYPE_RESULT=4)
+    
+    ; Check if resulting ImageArray confirms to dimensional requirements of calling object
+    IF (SIZE(ImageArray))[0] EQ 2 THEN required_type = 'ROISERIES_2D' ELSE required_type = 'ROISERIES_3D'
+    IF type NE required_type THEN MESSAGE,'Please provide input resulting in: '+ required_type
     
     print,"images loaded"
     

@@ -35,6 +35,34 @@ FUNCTION RoiSeries :: init
     RETURN,1
 END
 
+; Extractimage-objects
+FUNCTION ROIseries :: COOKIE_CUTTER,id,db,SHAPEFILE, ID_COLNAME , RASTER, SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling
+    COMPILE_OPT idl2, HIDDEN
+    ON_ERROR,self.on_error
+
+    ; Check inputs
+    testv=[N_ELEMENTS(id),N_ELEMENTS(db),N_ELEMENTS(SHAPEFILE) NE 0,N_ELEMENTS(ID_COLNAME)NE 0,N_ELEMENTS(RASTER)NE 0]
+    IF TOTAL(testv) NE N_ELEMENTS(testv) THEN BEGIN
+        TESTVPos=WHERE(~TESTV)
+        IF TESTVPos->HasValue(0) THEN PRINT,"Please provide id"
+        IF TESTVPos->HasValue(1) THEN PRINT,"Plase provide db"
+        IF TESTVPos->HasValue(2) THEN PRINT,"please provide path to SHAPEFILE"
+        IF TESTVPos->HasValue(3) THEN PRINT,"please name the column in which the ID is stored"
+        IF TESTVPos->HasValue(4) THEN PRINT,"please provide raster input"
+        RETURN,0
+    ENDIF
+  
+    IF FILE_TEST(DB,/DIRECTORY) EQ 0 THEN FILE_MKDIR,DB
+    self.db = db
+    self.id = id
+    result = COOKIE_CUTTER(SHAPEFILE, ID_COLNAME , RASTER, SPECTRAL_INDEXER_FORMULA=spectral_indexer_formula,UPSAMPLING=upsampling,TYPE=TYPENAME(self))
+    self.data=result
+    self->savetodb,"cookie_cutter"
+
+    RETURN,1
+END
+
+
 ; Save object to db
 PRO RoiSeries :: savetodb,step
     COMPILE_OPT idl2, HIDDEN
