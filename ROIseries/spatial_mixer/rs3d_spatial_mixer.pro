@@ -86,6 +86,6 @@ FUNCTION RS3D_SPATIAL_MIXER,RS_3D_SELF,TYPE
         ENDCASE
         result_hash[key] = result
     ENDFOREACH
-
+    
     RETURN,LIST(result_hash,result_time)
 END

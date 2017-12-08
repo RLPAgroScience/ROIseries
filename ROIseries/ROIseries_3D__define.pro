@@ -32,7 +32,7 @@ FUNCTION ROIseries_3D :: spatial_mixer,statistics_type
     RS1D = ROIseries_1D()
     RS1D.no_save = self.no_save
     RS1D.parents = self.parents
-    RS1D.legacy = self.legacy
+    RS1D.history = self.history
     RS1D.DB = self.db
     RS1D.id = self.id
     RS1D.time = self.time

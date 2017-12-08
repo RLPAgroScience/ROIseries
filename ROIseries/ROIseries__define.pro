@@ -24,7 +24,7 @@ FUNCTION RoiSeries :: init
     
     self.data=HASH()
     self.parents=HASH()
-    self.legacy=ORDEREDHASH()
+    self.history=ORDEREDHASH()
     self.DB=''
     self.id=''
     self.time=LIST()
@@ -69,18 +69,20 @@ PRO RoiSeries :: savetodb,step
     ON_ERROR,self.on_error
     
     IF self.no_save THEN BEGIN
-        path=!Values.F_NAN
+        path = !Values.F_NAN 
     ENDIF ELSE BEGIN
-        path=self.db+step+".sav"
-        IF N_ELEMENTS(self.legacy) EQ !NULL THEN BEGIN
-            self.legacy=ORDEREDHASH(step,path)
-        ENDIF ELSE BEGIN
-            self.legacy=(self.legacy)+ORDEREDHASH(step,path)
-        ENDELSE
-        (SCOPE_VARFETCH(step,/ENTER))=self.clone(/KEEP_ID)
+        path = FILEPATH(step+".sav",ROOT=self.db)
+        (SCOPE_VARFETCH(step,/ENTER)) = self.clone(/KEEP_ID)
         SAVE,FILENAME=path,(SCOPE_VARFETCH(step,/ENTER))
-        temp=(size(temporary((SCOPE_VARFETCH(step,/ENTER)))))
+        temp = (size(temporary((SCOPE_VARFETCH(step,/ENTER)))))
     ENDELSE
+        
+    IF N_ELEMENTS(self.history) EQ !NULL THEN BEGIN
+        self.history=ORDEREDHASH(step,path)
+    ENDIF ELSE BEGIN
+        self.history=(self.history)+ORDEREDHASH(step,path)
+    ENDELSE
+    
 END
 
 ; Restore object to specified "step" from DB folder
@@ -90,8 +92,8 @@ FUNCTION RoiSeries :: reset,step
     
     ; Test if save was enabled.
     ; Not testing on self.no_save makes it possible to save only certain steps:
-    ; IF ((*(self.legacy))[step]) EQ !Values.F_NAN THEN RETURN,"NO_SAVE was set"
-    RESTORE,((self.legacy)[step])
+    ; IF ((*(self.history))[step]) EQ !Values.F_NAN THEN RETURN,"NO_SAVE was set"
+    RESTORE,((self.history)[step])
     RETURN,(scope_varfetch(step,/ENTER))
 END
 
@@ -351,7 +353,7 @@ FUNCTION RoiSeries::temporal_filter,TYPE,N
                        self_dat[ROI]=FFT(self_dat[ROI],/INVERSE)
                    ENDFOREACH
             
-                   ; update legacy
+                   ; update history
                    self->savetodb,("filter_"+TYPE+(N->get("id")))
                    RETURN,1
                END
@@ -401,10 +403,10 @@ PRO RoiSeries__define,void
         data : HASH(),$
         time : LIST(),$
         groundtruth: HASH(),$ ; e. g. MAHD :)
-        parents: HASH(),$; e. g. (ID1:legacy1,ID2:legacy2)
-        legacy : ORDEREDHASH(),$  ; to store calculation legacy
+        parents: HASH(),$; e. g. (ID1:history1,ID2:history2)
+        history : ORDEREDHASH(),$  ; to store calculation history
         DB : '',$ ; The place to store the steps
-        id : '',$ ;to have an ID to reference object (for legacy)
+        id : '',$ ;to have an ID to reference object (for history)
         class: HASH(), $ ; to be able to classify rois
         no_save:BOOLEAN(0), $ ; enable saving by default
         unit:LIST(),$
