@@ -44,7 +44,7 @@ FUNCTION RS2D_SPATIAL_MIXER,RS_2D_SELF,TYPE
     time = LIST()
     
     FOREACH T,TYPE DO BEGIN
-            IF (['MEAN','STDDEV','COUNT','MIN','MAX','SUM','MEDIAN']).HasValue(T) THEN time.add,T
+        IF (['MEAN','STDDEV','COUNT','MIN','MAX','SUM','MEDIAN']).HasValue(T) THEN time.add,T
         CASE T OF
             ; Simple type:
             'MEAN': temp_results.add, RS_2D_SELF.data.map(LAMBDA(x:MEAN(x,/NAN)))
@@ -72,14 +72,12 @@ FUNCTION RS2D_SPATIAL_MIXER,RS_2D_SELF,TYPE
                     temp_results.add, RS_2D_SELF.data.map(LAMBDA(x,p:PERCENTILE_RS(x,p)),perc)
                     time.add,T
                 ENDIF ELSE IF T.StartsWith('GLCM') THEN BEGIN
-                    ; TODO: Test this
                     glcm_type = (T.split('_'))[1]
                     direction = (T.split('_'))[2]
                     IF N_ELEMENTS(glcm) EQ 0 THEN glcm = HASH()
-                    IF glcm.HasKey(direction) EQ 0 THEN glcm[d] = arr_bytscl.map(glcm_matrix_lambda, d)
-                    temp_results.add, glcm[direction].map(glcm_features_lambda,glcm_type,arr_bytscl)
+                    IF glcm.HasKey(direction) EQ 0 THEN glcm[direction] = RS_2D_SELF.data.map('GLCM_MATRIX', direction)
+                    temp_results.add,glcm[direction].map('GLCM_FEATURES',glcm_type)
                     time.add,T
-                    ; TODO: Test this
                 ENDIF
             END      
         ENDCASE
