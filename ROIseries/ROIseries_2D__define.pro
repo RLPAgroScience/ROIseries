@@ -30,7 +30,7 @@ FUNCTION ROIseries_2D :: spatial_mixer,statistics_type
   RS1D.time = self.time
   RS1D.class = self.class
   RS1D.unit = self.unit
-  result = RS2D_SPATIAL_MIXER(self,statistics_type)
+  result = RS_SPATIAL_MIXER(self,statistics_type)
   RS1D.data = result[0]
   RS1D.time = result[1]
   RS1D.savetodb,"spatial_mixer_"+statistics_type
