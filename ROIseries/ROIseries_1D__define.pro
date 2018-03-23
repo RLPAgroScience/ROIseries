@@ -115,10 +115,10 @@ FUNCTION ROIseries_1D :: book_keeper,CSV_PATH=csv_path
     data[0:col_lenght-2,*] =data[0:col_lenght-2,*]+"," 
     
     time_to_write = ["id,",self.id+"_"+[time[0:-2]+",",time[-1]]]
-    OPENW,1,csv_path,width=MAX([MAX(STRLEN(STRJOIN(data," "))),MAX(STRLEN(STRJOIN(time_to_write," ")))])
-    PRINTF,1,time_to_write
-    PRINTF,1,data
-    FREE_LUN,1
+    OPENW,lun,csv_path,/GET_LUN,width=MAX([MAX(STRLEN(STRJOIN(data," "))),MAX(STRLEN(STRJOIN(time_to_write," ")))])
+    PRINTF,lun,time_to_write
+    PRINTF,lun,data
+    FREE_LUN,lun
     
     RETURN,1
 END
