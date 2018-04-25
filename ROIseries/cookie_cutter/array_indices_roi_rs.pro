@@ -131,6 +131,9 @@ FUNCTION ARRAY_INDICES_ROI_RS,Raster,Shp,ID,UPSAMPLING=upsampling,PUMPUP=pumpup
     ; Clean IDs
     attr_l = LIST(attr,/EXTRACT)
     ids_removed = attr_l.remove(null_id_indices)
+    
+    ; if only one null_id is present, .remove returns string literatl instead of list, which breaks the next warning
+    IF TYPENAME(ids_removed) NE 'LIST' THEN ids_removed = LIST(ids_removed)
     IF TOTAL(ids_removed NE !NULL) NE 0 THEN PRINT,"Objects containing no pixels: "+(STRTRIM((ids_removed).ToArray(),2)).Join(', ')
     attr = attr_l.ToArray()
     
