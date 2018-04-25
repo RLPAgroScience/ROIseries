@@ -141,6 +141,10 @@ FUNCTION RS_SPATIAL_MIXER,RS_SELF,TYPES
                 direction = (T.split('_'))[2]
                 IF N_ELEMENTS(glcm) EQ 0 THEN glcm = HASH()
                 IF glcm.HasKey(direction) EQ 0 THEN glcm[direction] = current_slice.map('GLCM_MATRIX', direction)
+                
+                FOREACH value, current_slice, key DO _ = GLCM_MATRIX(value,direction)
+                FOREACH k,HASH(1,"a",2,"b") DO Print,k
+                
                 temp_results.add,glcm[direction].map('GLCM_FEATURES',glcm_type)
                 time_new.add,time + feature_seperator +T,/EXTRACT
             ENDIF ELSE IF T.startswith('PERCENTILE') THEN BEGIN

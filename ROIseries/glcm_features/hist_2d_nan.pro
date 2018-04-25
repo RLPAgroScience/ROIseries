@@ -138,7 +138,8 @@ FUNCTION HIST_2D_NAN, img_1, img_2
     
     IF N_ELEMENTS(img_1) EQ 0 THEN MESSAGE,"Please supply img_1"
     IF N_ELEMENTS(img_2) EQ 0 THEN MESSAGE,"Please supply img_2"
-
+    IF TOTAL(FINITE(img_1)) EQ 0 OR TOTAL(FINITE(img_2)) EQ 0 THEN RETURN,[!Values.F_NAN]
+    
     ; Get the absolute min and max from both input images
     img_min = MIN([img_1,img_2],/NAN,MAX=img_max)
     
