@@ -61,7 +61,7 @@ FUNCTION GET_RELDIR,routine_name,numbers_up,folders_down,SKIP_TEST=skip_test
     IF N_ELEMENTS(numbers_up) EQ 0 THEN MESSAGE,"Please provide numbers_up"
     IF N_ELEMENTS(folders_down) EQ 0 THEN MESSAGE,"Please provide folders_down"
     
-    RESOLVE_ROUTINE, routine_name, /EITHER
+    RESOLVE_ROUTINE,routine_name, /EITHER, /NO_RECOMPILE
     routine_dir = FILE_DIRNAME(ROUTINE_FILEPATH(routine_name, /EITHER))
     root_dir = UPDIR(routine_dir,numbers_up)
     new_dir = FILEPATH('',ROOT_DIR=root_dir,SUBDIRECTORY=folders_down)
